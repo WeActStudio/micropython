@@ -136,9 +136,6 @@ include $(SDKCONFIG)
 
 INC += -I.
 INC += -I$(TOP)
-INC += -I$(TOP)/lib/mp-readline
-INC += -I$(TOP)/lib/netutils
-INC += -I$(TOP)/lib/timeutils
 INC += -I$(BUILD)
 
 INC_ESPCOMP += -I$(ESPCOMP)/bootloader_support/include
@@ -341,7 +338,7 @@ SRC_C = \
 	modnetwork.c \
 	network_lan.c \
 	network_ppp.c \
-	nimble.c \
+	mpnimbleport.c \
 	modsocket.c \
 	modesp.c \
 	esp32_partition.c \
@@ -362,6 +359,7 @@ EXTMOD_SRC_C += $(addprefix extmod/,\
 	)
 
 LIB_SRC_C = $(addprefix lib/,\
+	mbedtls_errors/mp_mbedtls_errors.c \
 	mp-readline/readline.c \
 	netutils/netutils.c \
 	timeutils/timeutils.c \
@@ -506,11 +504,12 @@ ESPIDF_LWIP_O = $(patsubst %.c,%.o,\
 	$(wildcard $(ESPCOMP)/lwip/port/esp32/*/*.c) \
 	)
 
-ESPIDF_MBEDTLS_O = $(patsubst %.c,%.o,\
+# Mbedtls source files, exclude error.c in favor of lib/mbedtls_errors/mp_mbedtls_errors.c
+ESPIDF_MBEDTLS_O = $(patsubst %.c,%.o, $(filter-out %/error.c,\
 	$(wildcard $(ESPCOMP)/mbedtls/mbedtls/library/*.c) \
 	$(wildcard $(ESPCOMP)/mbedtls/port/*.c) \
 	$(wildcard $(ESPCOMP)/mbedtls/port/esp32/*.c) \
-	)
+	))
 
 ESPIDF_MDNS_O = $(patsubst %.c,%.o,$(wildcard $(ESPCOMP)/mdns/*.c))
 
