@@ -221,7 +221,11 @@ STATIC uint32_t spi_get_source_freq(SPI_HandleTypeDef *spi) {
     if (spi->Instance == SPI1 || spi->Instance == SPI2 || spi->Instance == SPI3) {
         return HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_SPI123);
     } else if (spi->Instance == SPI4 || spi->Instance == SPI5) {
-        return HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_SPI45);
+        PLL2_ClocksTypeDef pll2_clocks;
+        uint32_t frequency;
+        HAL_RCCEx_GetPLL2ClockFreq(&pll2_clocks);
+        return frequency = pll2_clocks.PLL2_P_Frequency;
+        //return HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_SPI45);
     } else {
         return HAL_RCCEx_GetPeriphCLKFreq(RCC_PERIPHCLK_SPI6);
     }
