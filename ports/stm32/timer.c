@@ -1570,6 +1570,14 @@ STATIC mp_obj_t pyb_timer_channel_callback(mp_obj_t self_in, mp_obj_t callback) 
         {
             HAL_NVIC_EnableIRQ(self->timer->irqn);
         }
+
+        #if defined(STM32H7)
+        // In the newer H7 HALs the HAL_PWM/IC/OC_Start() functions set the channel state to busy,
+        // this will cause HAL_PWM/IC/OC_Start_IT() functions to fail becasue the state is set busy.
+        // Make sure the channel state is reset to ready before calling HAL_PWM/IC/OC_Start_IT()
+        TIM_CHANNEL_STATE_SET(&self->timer->tim, TIMER_CHANNEL(self), HAL_TIM_CHANNEL_STATE_READY);
+        #endif
+
         // start timer, so that it interrupts on overflow
         switch (self->mode) {
             case CHANNEL_MODE_PWM_NORMAL:
@@ -1591,6 +1599,7 @@ STATIC mp_obj_t pyb_timer_channel_callback(mp_obj_t self_in, mp_obj_t callback) 
     } else {
         mp_raise_ValueError(MP_ERROR_TEXT("callback must be None or a callable object"));
     }
+
     return mp_const_none;
 }
 STATIC MP_DEFINE_CONST_FUN_OBJ_2(pyb_timer_channel_callback_obj, pyb_timer_channel_callback);

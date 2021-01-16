@@ -27,7 +27,13 @@
 #define MICROPY_HW_MCU_NAME         "NRF52840"
 #define MICROPY_PY_SYS_PLATFORM     "nano33"
 
-#define MICROPY_MBFS                (0)
+#define MICROPY_MBFS                (1)
+
+#define MICROPY_BOARD_EARLY_INIT NANO33_board_early_init
+void NANO33_board_early_init(void);
+
+#define MICROPY_BOARD_DEINIT NANO33_board_deinit
+void NANO33_board_deinit(void);
 
 #define MICROPY_PY_MACHINE_UART     (1)
 #define MICROPY_PY_MACHINE_HW_PWM   (1)

@@ -25,9 +25,13 @@
  */
 
 #include "nrf.h"
+#include "nrf_gpio.h"
 #include "nrf_rtc.h"
 
-void board_init(void)
+#define PIN_ENABLE_SENSORS_3V3     (22u)
+#define PIN_ENABLE_I2C_PULLUP      (32u)
+
+void NANO33_board_early_init(void)
 {
     // turn power LED on
     //pinMode(LED_PWR, OUTPUT);
@@ -45,9 +49,18 @@ void board_init(void)
 
     // FIXME: always enable I2C pullup and power @startup
     // Change for maximum powersave
-    //pinMode(PIN_ENABLE_SENSORS_3V3, OUTPUT);
-    //pinMode(PIN_ENABLE_I2C_PULLUP, OUTPUT);
+    nrf_gpio_cfg_output(PIN_ENABLE_SENSORS_3V3);
+    nrf_gpio_cfg_output(PIN_ENABLE_I2C_PULLUP);
 
-    //digitalWrite(PIN_ENABLE_SENSORS_3V3, HIGH);
-    //digitalWrite(PIN_ENABLE_I2C_PULLUP, HIGH);
+    nrf_gpio_pin_set(PIN_ENABLE_SENSORS_3V3);
+    nrf_gpio_pin_set(PIN_ENABLE_I2C_PULLUP);
+}
+
+void NANO33_board_deinit(void)
+{
+    nrf_gpio_cfg_output(PIN_ENABLE_SENSORS_3V3);
+    nrf_gpio_cfg_output(PIN_ENABLE_I2C_PULLUP);
+
+    nrf_gpio_pin_clear(PIN_ENABLE_SENSORS_3V3);
+    nrf_gpio_pin_clear(PIN_ENABLE_I2C_PULLUP);
 }

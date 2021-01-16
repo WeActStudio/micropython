@@ -3432,7 +3432,7 @@ The image object is the basic object for machine vision operations.
 
       If the regression's bounding box area is less than ``area_threshold`` then None is returned.
 
-      If the regression's pixel count is less than ``pixel_threshold`` then None is returned.
+      If the regression's pixel count is less than ``pixels_threshold`` then None is returned.
 
       Not supported on compressed images or bayer images.
 
@@ -3488,7 +3488,7 @@ The image object is the basic object for machine vision operations.
       If a blob's bounding box area is less than ``area_threshold`` it is filtered
       out.
 
-      If a blob's pixel count is less than ``pixel_threshold`` it is filtered out.
+      If a blob's pixel count is less than ``pixels_threshold`` it is filtered out.
 
       ``merge`` if True merges all not filtered out blobs whos bounding
       rectangles intersect each other. ``margin`` can be used to increase or

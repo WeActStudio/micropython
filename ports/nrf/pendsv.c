@@ -52,8 +52,8 @@ void pendsv_init(void) {
     #endif
     NVIC_DisableIRQ(PendSV_IRQn);
     __ISB();
-    // Set PendSV interrupt at lowest priority higher than USBD
-    NVIC_SetPriority(PendSV_IRQn, 3);
+    // Set PendSV to lowest priority.
+    NVIC_SetPriority(PendSV_IRQn, 7);
     __ISB();
     NVIC_EnableIRQ(PendSV_IRQn);
     __ISB();

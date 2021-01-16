@@ -96,6 +96,10 @@ void sdram_leave_low_power();
 #define MICROPY_HW_UART_REPL        PYB_UART_1
 #define MICROPY_HW_UART_REPL_BAUD   115200
 
+// UART config
+#define MICROPY_HW_UART8_TX         (pin_J8)
+#define MICROPY_HW_UART8_RX         (pin_J9)
+
 // I2C busses
 #define MICROPY_HW_I2C3_SCL         (pin_H7)
 #define MICROPY_HW_I2C3_SDA         (pin_H8)

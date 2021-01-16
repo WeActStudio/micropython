@@ -186,8 +186,8 @@ Functions
       * `sensor.QQVGA`: 160x120
       * `sensor.QVGA`: 320x240
       * `sensor.VGA`: 640x480
-      * `sensor.HQQQVGA`: 80x40
-      * `sensor.HQQVGA`: 160x80
+      * `sensor.HQQQVGA`: 60x40
+      * `sensor.HQQVGA`: 120x80
       * `sensor.HQVGA`: 240x160
       * `sensor.B64X32`: 64x32 (for use with `image.find_displacement()`)
       * `sensor.B64X64`: 64x64 (for use with `image.find_displacement()`)

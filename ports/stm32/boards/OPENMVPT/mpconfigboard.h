@@ -61,6 +61,12 @@ void sdram_enter_low_power();
 #define MICROPY_HW_SPI2_MISO (pin_B14)
 #define MICROPY_HW_SPI2_MOSI (pin_B15)
 
+// SPI buses
+#define MICROPY_HW_SPI3_NSS  (pin_A15)
+#define MICROPY_HW_SPI3_SCK  (pin_B3)
+#define MICROPY_HW_SPI3_MISO (pin_B4)
+#define MICROPY_HW_SPI3_MOSI (pin_B5)
+
 // FDCAN bus
 #define MICROPY_HW_CAN2_NAME  "FDCAN2"
 #define MICROPY_HW_CAN2_TX    (pin_B13)
