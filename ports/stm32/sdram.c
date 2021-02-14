@@ -276,6 +276,16 @@ void sdram_leave_low_power()
     HAL_SDRAM_SendCommand(&hsdram, &command, 0xFFFF);
 }
 
+void sdram_powerdown()
+{
+    FMC_SDRAM_CommandTypeDef command;
+    command.CommandMode = FMC_SDRAM_CMD_POWERDOWN_MODE;
+    command.CommandTarget = FMC_SDRAM_CMD_TARGET_BANK;
+    command.AutoRefreshNumber = 1;
+    command.ModeRegisterDefinition = 0;
+    HAL_SDRAM_SendCommand(&hsdram, &command, 0xFFFF);
+}
+
 bool __attribute__((optimize("O0"))) sdram_test(bool exhaustive)
 {
     char error_buffer[1024];

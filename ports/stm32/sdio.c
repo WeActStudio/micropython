@@ -25,6 +25,7 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "py/mperrno.h"
 #include "py/mphal.h"
@@ -50,6 +51,11 @@ static volatile bool sdmmc_dma;
 static volatile uint32_t sdmmc_error;
 static volatile uint8_t *sdmmc_buf_cur;
 static volatile uint8_t *sdmmc_buf_top;
+
+#define OMV_ATTR_ALIGNED(x, a)   x __attribute__((aligned(a)))
+#define OMV_ATTR_SECTION(x, s)   x __attribute__((section(s)))
+#define DMA_BUF_SIZE    (4*1024)
+static uint8_t OMV_ATTR_SECTION(OMV_ATTR_ALIGNED(DMA_BUFFER[DMA_BUF_SIZE], 4), ".dma_buffer");
 
 void sdio_init(uint32_t irq_pri) {
     // configure IO pins
@@ -239,7 +245,7 @@ int sdio_transfer(uint32_t cmd, uint32_t arg, uint32_t *resp) {
         if (sdmmc_irq_state == SDMMC_IRQ_STATE_DONE) {
             break;
         }
-        if (mp_hal_ticks_ms() - start > 1000) {
+        if (mp_hal_ticks_ms() - start > 2000) {
             SDMMC1->MASK = DEFAULT_MASK;
             printf("sdio_transfer timeout STA=0x%08x\n", (uint)SDMMC1->STA);
             return -MP_ETIMEDOUT;
@@ -266,7 +272,7 @@ int sdio_transfer(uint32_t cmd, uint32_t arg, uint32_t *resp) {
     return 0;
 }
 
-int sdio_transfer_cmd53(bool write, uint32_t block_size, uint32_t arg, size_t len, uint8_t *buf) {
+int sdio_transfer_cmd53(bool write, uint32_t block_size, uint32_t arg, size_t len, uint8_t *buf_in) {
     #if defined(STM32F7)
     // Wait for any outstanding TX to complete
     while (SDMMC1->STA & SDMMC_STA_TXACT) {
@@ -294,12 +300,24 @@ int sdio_transfer_cmd53(bool write, uint32_t block_size, uint32_t arg, size_t le
         return -MP_EINVAL;
     }
 
+    uint8_t *buf = buf_in;
     bool dma = (len > 16) && DMA_BUFFER(buf) && IS_AXI_SRAM(buf);
+    bool dma_buf_used = false;
+
+    // For read transfers bigger than FIFO size with a non-DMA buffer provided, we use
+    // a temporary DMA buffer instead to force a DMA transfer, to avoid FIFO overruns.
+    if (dma == false && len > 16 && len < DMA_BUF_SIZE) {
+        dma = dma_buf_used = true;
+        if (write) {
+            memcpy(DMA_BUFFER, buf_in, len);
+        }
+        buf = DMA_BUFFER; // overwrite dest buffer with DMA_BUFFER.
+    }
 
     SDMMC1->ICR = SDMMC_STATIC_FLAGS; // clear interrupts
     SDMMC1->MASK &= SDMMC_MASK_SDIOITIE;
 
-    SDMMC1->DTIMER = 0x2000000; // about 700ms running at 48MHz
+    SDMMC1->DTIMER = 0x4000000; // about 700ms running at 48MHz
     SDMMC1->DLEN = (len + block_size - 1) & ~(block_size - 1);
 
     #if defined(STM32F7)
@@ -391,7 +409,7 @@ int sdio_transfer_cmd53(bool write, uint32_t block_size, uint32_t arg, size_t le
         if (sdmmc_irq_state == SDMMC_IRQ_STATE_DONE) {
             break;
         }
-        if (mp_hal_ticks_ms() - start > 200) {
+        if (mp_hal_ticks_ms() - start > 2000) {
             SDMMC1->MASK &= SDMMC_MASK_SDIOITIE;
             #if defined(STM32F7)
             printf("sdio_transfer_cmd53: timeout wr=%d len=%u dma=%u buf_idx=%u STA=%08x SDMMC=%08x:%08x DMA=%08x:%08x:%08x RCC=%08x\n", write, (uint)len, (uint)dma, sdmmc_buf_cur - buf, (uint)SDMMC1->STA, (uint)SDMMC1->DCOUNT, (uint)SDMMC1->FIFOCNT, (uint)DMA2->LISR, (uint)DMA2->HISR, (uint)DMA2_Stream3->NDTR, (uint)RCC->AHB1ENR);
@@ -420,6 +438,10 @@ int sdio_transfer_cmd53(bool write, uint32_t block_size, uint32_t arg, size_t le
         }
     }
 
+    if (dma_buf_used && write == 0) {
+        // If DMA buffer was used, copy back to user buffer.
+        memcpy(buf_in, DMA_BUFFER, len);
+    }
     return 0;
 }
 
