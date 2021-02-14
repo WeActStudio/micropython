@@ -2,6 +2,7 @@
 #define MICROPY_HW_MCU_NAME         "STM32H747"
 #define MICROPY_HW_FLASH_FS_LABEL	"portenta"
 
+#define MICROPY_FATFS_EXFAT         (1)
 #define MICROPY_HW_ENABLE_RTC       (1)
 #define MICROPY_HW_ENABLE_RNG       (1)
 #define MICROPY_HW_ENABLE_ADC       (1)
@@ -13,6 +14,8 @@
 #define MICROPY_HW_ENABLE_TIMER     (1)
 #define MICROPY_HW_ENABLE_SDCARD    (1)
 #define MICROPY_HW_ENABLE_MMCARD    (0)
+// Reserved DMA streams
+#define MICROPY_HW_DMA2S1_IS_RESERVED
 
 #define MICROPY_HW_ENABLE_INTERNAL_FLASH_STORAGE (0)
 
@@ -31,11 +34,10 @@ void PORTENTA_board_early_init(void);
 #define ARDUINO_1200BPS_TOUCH PORTENTA_reboot_to_bootloader
 void PORTENTA_reboot_to_bootloader(void);
 
-#define MICROPY_BOARD_ENTER_STOP sdram_enter_low_power();
-void sdram_enter_low_power();
-
-#define MICROPY_BOARD_LEAVE_STOP sdram_leave_low_power();
-void sdram_leave_low_power();
+void PORTENTA_board_low_power(int mode);
+#define MICROPY_BOARD_LEAVE_STOP    PORTENTA_board_low_power(0);
+#define MICROPY_BOARD_ENTER_STOP    PORTENTA_board_low_power(1);
+#define MICROPY_BOARD_ENTER_STANDBY PORTENTA_board_low_power(2);
 
 // The board has an 25MHz HSE, the following gives 450MHz CPU speed
 #define MICROPY_HW_CLK_PLLM (5)

@@ -18,7 +18,7 @@ include $(BOARD_DIR)/mpconfigboard.mk
 QSTR_GENERATED_HEADERS = $(BUILD)/pins_qstr.h $(BUILD)/modstm_qstr.h
 
 # qstr definitions (must come before including py.mk)
-override QSTR_DEFS += qstrdefsport.h $(QSTR_GENERATED_HEADERS)
+QSTR_DEFS += qstrdefsport.h $(QSTR_GENERATED_HEADERS)
 QSTR_GLOBAL_DEPENDENCIES = mpconfigboard_common.h $(BOARD_DIR)/mpconfigboard.h $(QSTR_GENERATED_HEADERS)
 
 # MicroPython feature configurations
@@ -628,7 +628,7 @@ GEN_CDCINF_FILE = $(HEADER_BUILD)/openmv.inf
 GEN_CDCINF_HEADER = $(HEADER_BUILD)/openmv_inf.h
 
 # List of sources for qstr extraction
-SRC_QSTR += $(SRC_C) $(SRC_MOD) $(LIB_SRC_C) $(EXTMOD_SRC_C)
+SRC_QSTR += $(SRC_C) $(SRC_MOD) $(LIB_SRC_C) $(EXTMOD_SRC_C) $(OMV_SRC_QSTR)
 # Append any auto-generated sources that are needed by sources listed in
 # SRC_QSTR
 SRC_QSTR_AUTO_DEPS += $(GEN_CDCINF_HEADER)

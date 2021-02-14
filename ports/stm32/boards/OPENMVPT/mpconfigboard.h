@@ -2,6 +2,7 @@
 #define MICROPY_HW_MCU_NAME         "STM32H743"
 #define MICROPY_PY_SYS_PLATFORM     "OpenMVPureThermal"
 
+#define MICROPY_FATFS_EXFAT         (1)
 #define MICROPY_HW_ENABLE_RNG       (1)
 #define MICROPY_HW_ENABLE_RTC       (1)
 #define MICROPY_HW_ENABLE_TIMER     (1)
@@ -11,7 +12,9 @@
 #define MICROPY_HW_ENABLE_SPI2      (1)
 #define MICROPY_HW_ENABLE_USB       (1)
 #define MICROPY_HW_ENABLE_SDCARD    (1)
-#define MICROPY_FATFS_EXFAT         (1)
+// Reserved DMA streams
+#define MICROPY_HW_DMA1S0_IS_RESERVED
+#define MICROPY_HW_DMA2S1_IS_RESERVED
 
 // Note these are not used in top system.c.
 #define MICROPY_HW_CLK_PLLM         (3)
@@ -20,10 +23,10 @@
 #define MICROPY_HW_CLK_PLLQ         (8)
 #define MICROPY_HW_CLK_PLLR         (2)
 
-void sdram_leave_low_power();
-void sdram_enter_low_power();
-#define MICROPY_BOARD_ENTER_STOP sdram_enter_low_power();
-#define MICROPY_BOARD_LEAVE_STOP sdram_leave_low_power();
+void board_low_power(int mode);
+#define MICROPY_BOARD_LEAVE_STOP    board_low_power(0);
+#define MICROPY_BOARD_ENTER_STOP    board_low_power(1);
+#define MICROPY_BOARD_ENTER_STANDBY board_low_power(2);
 
 #define USBD_VID                      0x1209
 #define USBD_PID                      0xabd1

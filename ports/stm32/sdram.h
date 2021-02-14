@@ -14,4 +14,5 @@ void *sdram_end(void);
 bool sdram_test(bool exhaustive);
 void sdram_enter_low_power();
 void sdram_leave_low_power();
+void sdram_powerdown();
 #endif // __SDRAM_H__

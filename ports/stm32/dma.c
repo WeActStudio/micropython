@@ -478,7 +478,9 @@ static const uint8_t dma_irqn[NSTREAM] = {
 // around each transfer.
 
 // DMA1 streams
-//const dma_descr_t dma_I2C_1_RX = { DMA1_Stream0, DMA_REQUEST_I2C1_RX, dma_id_0,   &dma_init_struct_spi_i2c };
+#ifndef MICROPY_HW_DMA1S0_IS_RESERVED
+const dma_descr_t dma_I2C_1_RX = { DMA1_Stream0, DMA_REQUEST_I2C1_RX, dma_id_0,   &dma_init_struct_spi_i2c };
+#endif
 const dma_descr_t dma_SPI_3_RX = { DMA1_Stream2, DMA_REQUEST_SPI3_RX, dma_id_2,   &dma_init_struct_spi_i2c };
 const dma_descr_t dma_I2C_4_RX = { DMA1_Stream2, BDMA_REQUEST_I2C4_RX, dma_id_2,   &dma_init_struct_spi_i2c };
 const dma_descr_t dma_I2C_3_RX = { DMA1_Stream2, DMA_REQUEST_I2C3_RX, dma_id_2,   &dma_init_struct_spi_i2c };
@@ -587,14 +589,15 @@ void DMA1_Ch4_7_DMA2_Ch3_5_IRQHandler(void) {
 }
 
 #elif defined(STM32F4) || defined(STM32F7) || defined(STM32H7)
-// Used by SPI4 for FLIR/LEPTON.
-//void DMA1_Stream0_IRQHandler(void) {
-//    IRQ_ENTER(DMA1_Stream0_IRQn);
-//    if (dma_handle[dma_id_0] != NULL) {
-//        HAL_DMA_IRQHandler(dma_handle[dma_id_0]);
-//    }
-//    IRQ_EXIT(DMA1_Stream0_IRQn);
-//}
+#ifndef MICROPY_HW_DMA1S0_IS_RESERVED
+void DMA1_Stream0_IRQHandler(void) {
+    IRQ_ENTER(DMA1_Stream0_IRQn);
+    if (dma_handle[dma_id_0] != NULL) {
+        HAL_DMA_IRQHandler(dma_handle[dma_id_0]);
+    }
+    IRQ_EXIT(DMA1_Stream0_IRQn);
+}
+#endif
 void DMA1_Stream1_IRQHandler(void) {
     IRQ_ENTER(DMA1_Stream1_IRQn);
     if (dma_handle[dma_id_1] != NULL) {
@@ -651,14 +654,15 @@ void DMA2_Stream0_IRQHandler(void) {
     }
     IRQ_EXIT(DMA2_Stream0_IRQn);
 }
-// Used by DCMI.
-//void DMA2_Stream1_IRQHandler(void) {
-//    IRQ_ENTER(DMA2_Stream1_IRQn);
-//    if (dma_handle[dma_id_9] != NULL) {
-//        HAL_DMA_IRQHandler(dma_handle[dma_id_9]);
-//    }
-//    IRQ_EXIT(DMA2_Stream1_IRQn);
-//}
+#ifndef MICROPY_HW_DMA2S1_IS_RESERVED
+void DMA2_Stream1_IRQHandler(void) {
+    IRQ_ENTER(DMA2_Stream1_IRQn);
+    if (dma_handle[dma_id_9] != NULL) {
+        HAL_DMA_IRQHandler(dma_handle[dma_id_9]);
+    }
+    IRQ_EXIT(DMA2_Stream1_IRQn);
+}
+#endif
 void DMA2_Stream2_IRQHandler(void) {
     IRQ_ENTER(DMA2_Stream2_IRQn);
     if (dma_handle[dma_id_10] != NULL) {
