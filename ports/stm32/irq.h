@@ -163,6 +163,8 @@ static inline void restore_irq_pri(uint32_t state) {
 // into the sdcard driver which waits for the DMA to complete.
 #define IRQ_PRI_DMA             NVIC_EncodePriority(NVIC_PRIORITYGROUP_4, 6, 0)
 
+#define IRQ_PRI_MDMA            NVIC_EncodePriority(NVIC_PRIORITYGROUP_4, 7, 0)
+
 #define IRQ_PRI_OTG_FS          NVIC_EncodePriority(NVIC_PRIORITYGROUP_4, 7, 0)
 
 #define IRQ_PRI_OTG_HS          NVIC_EncodePriority(NVIC_PRIORITYGROUP_4, 7, 0)

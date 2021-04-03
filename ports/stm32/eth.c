@@ -46,6 +46,7 @@
 #define PHY_BCR                 (0x0000)
 #define PHY_BCR_SOFT_RESET      (0x8000)
 #define PHY_BCR_AUTONEG_EN      (0x1000)
+#define LAN8742_BCR_POWER_DOWN  (0x0800U)
 
 #undef PHY_BSR
 #define PHY_BSR                 (0x0001)
@@ -812,6 +813,75 @@ int eth_stop(eth_t *self) {
     eth_lwip_deinit(self);
     eth_mac_deinit(self);
     return 0;
+}
+
+void eth_enter_low_power()
+{
+    // This function is called from early_board_init before any other function.
+    // Do basic Ethernet initialization here to be able to read/write registers.
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+
+    GPIO_InitTypeDef GPIO_InitStruct;
+    GPIO_InitStruct.Pull      = GPIO_NOPULL;
+    GPIO_InitStruct.Speed     = GPIO_SPEED_HIGH;
+    GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
+
+    // Configure MDC
+    GPIO_InitStruct.Pin = GPIO_PIN_1;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+    // Configure MDIO
+    GPIO_InitStruct.Pin = GPIO_PIN_2;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    // Configure REF clock.
+    GPIO_InitStruct.Pin = GPIO_PIN_1;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    // Enable eth clock
+    __HAL_RCC_ETH1MAC_CLK_ENABLE();
+
+    // Enable low-power mode.
+    uint16_t bcr = eth_phy_read(PHY_BCR);
+    eth_phy_write(PHY_BCR, bcr | LAN8742_BCR_POWER_DOWN);
+
+    // Disable eth clock.
+    __HAL_RCC_ETH1MAC_CLK_DISABLE();
+}
+
+void eth_leave_low_power()
+{
+    // This function is called from early_board_init before any other function.
+    // Do basic Ethernet initialization here to be able to read/write registers.
+    __HAL_RCC_GPIOA_CLK_ENABLE();
+    __HAL_RCC_GPIOC_CLK_ENABLE();
+
+    GPIO_InitTypeDef GPIO_InitStruct;
+    GPIO_InitStruct.Pull      = GPIO_NOPULL;
+    GPIO_InitStruct.Speed     = GPIO_SPEED_HIGH;
+    GPIO_InitStruct.Mode      = GPIO_MODE_AF_PP;
+    GPIO_InitStruct.Alternate = GPIO_AF11_ETH;
+
+    // Configure MDC
+    GPIO_InitStruct.Pin = GPIO_PIN_1;
+    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
+
+    // Configure MDIO
+    GPIO_InitStruct.Pin = GPIO_PIN_2;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    // Configure REF clock.
+    GPIO_InitStruct.Pin = GPIO_PIN_1;
+    HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
+
+    // Enable eth clock
+    __HAL_RCC_ETH1MAC_CLK_ENABLE();
+
+    // Disable low-power mode.
+    uint16_t bcr = eth_phy_read(PHY_BCR);
+    eth_phy_write(PHY_BCR, bcr & (~LAN8742_BCR_POWER_DOWN));
 }
 
 #endif // defined(MICROPY_HW_ETH_MDC)

@@ -18,13 +18,6 @@
 // Reserved DMA streams
 #define MICROPY_HW_DMA2S1_IS_RESERVED
 
-#define MICROPY_PY_USOCKET          (1)
-#define MICROPY_PY_NETWORK          (1)
-#define MICROPY_PY_THREAD           (1)
-#define MICROPY_PY_RNDIS			(0)
-#define OPENAMP_PY					(0)
-#define MICROPY_JERRYSCRIPT         (0)
-
 #define MICROPY_BOARD_EARLY_INIT BORMIO_board_early_init
 void BORMIO_board_early_init(void);
 
@@ -83,6 +76,12 @@ extern struct _spi_bdev_t spi_bdev;
 #define MICROPY_HW_I2C1_SCL         (pin_B6)
 #define MICROPY_HW_I2C1_SDA         (pin_B7)
 
+#define MICROPY_HW_I2C2_SCL         (pin_B10)
+#define MICROPY_HW_I2C2_SDA         (pin_B11)
+
+#define MICROPY_HW_I2C3_SCL         (pin_H7)
+#define MICROPY_HW_I2C3_SDA         (pin_H8)
+
 // SPI buses
 #define MICROPY_HW_SPI4_NSS  (pin_E11)
 #define MICROPY_HW_SPI4_SCK  (pin_E12)
@@ -95,6 +94,15 @@ extern struct _spi_bdev_t spi_bdev;
 #define MICROPY_HW_LED3             (pyb_pin_LEDB) // yellow
 #define MICROPY_HW_LED_ON(pin)      (mp_hal_pin_low(pin))
 #define MICROPY_HW_LED_OFF(pin)     (mp_hal_pin_high(pin))
+
+// WiFi SDMMC
+#define MICROPY_HW_WIFI_SDMMC       (2)
+#define MICROPY_HW_SDMMC2_CK        (pin_C1)
+#define MICROPY_HW_SDMMC2_CMD       (pin_D7)
+#define MICROPY_HW_SDMMC2_D0        (pin_B14)
+#define MICROPY_HW_SDMMC2_D1        (pin_B15)
+#define MICROPY_HW_SDMMC2_D2        (pin_G11)
+#define MICROPY_HW_SDMMC2_D3        (pin_B4)
 
 // USB config
 #define MICROPY_HW_USB_FS           (1)

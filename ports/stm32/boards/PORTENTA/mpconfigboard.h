@@ -21,13 +21,6 @@
 
 #define MICROPY_HW_CLK_USE_BYPASS	(1)
 
-#define MICROPY_PY_USOCKET          (1)
-#define MICROPY_PY_NETWORK          (1)
-#define MICROPY_PY_THREAD           (1)
-#define MICROPY_PY_RNDIS			(0)
-#define OPENAMP_PY					(0)
-#define MICROPY_JERRYSCRIPT         (0)
-
 #define MICROPY_BOARD_EARLY_INIT PORTENTA_board_early_init
 void PORTENTA_board_early_init(void);
 
@@ -38,6 +31,10 @@ void PORTENTA_board_low_power(int mode);
 #define MICROPY_BOARD_LEAVE_STOP    PORTENTA_board_low_power(0);
 #define MICROPY_BOARD_ENTER_STOP    PORTENTA_board_low_power(1);
 #define MICROPY_BOARD_ENTER_STANDBY PORTENTA_board_low_power(2);
+
+void PORTENTA_board_osc_enable(int enable);
+#define MICROPY_BOARD_OSC_ENABLE    PORTENTA_board_osc_enable(1);
+#define MICROPY_BOARD_OSC_DISABLE   PORTENTA_board_osc_enable(0);
 
 // The board has an 25MHz HSE, the following gives 450MHz CPU speed
 #define MICROPY_HW_CLK_PLLM (5)
@@ -125,6 +122,17 @@ void PORTENTA_board_low_power(int mode);
 #define MICROPY_HW_LED_ON(pin)      (mp_hal_pin_low(pin))
 #define MICROPY_HW_LED_OFF(pin)     (mp_hal_pin_high(pin))
 
+// WiFi SDMMC
+#define MICROPY_HW_WIFI_SDMMC       (1)
+#define MICROPY_HW_SDMMC1_CK        (pin_C12)
+#define MICROPY_HW_SDMMC1_CMD       (pin_D2)
+#define MICROPY_HW_SDMMC1_D0        (pin_C8)
+#define MICROPY_HW_SDMMC1_D1        (pin_C9)
+#define MICROPY_HW_SDMMC1_D2        (pin_C10)
+#define MICROPY_HW_SDMMC1_D3        (pin_C11)
+
+// SD Card SDMMC
+#define MICROPY_HW_SDCARD_SDMMC     (2)
 #define MICROPY_HW_SDMMC2_CK        (pin_D6)
 #define MICROPY_HW_SDMMC2_CMD       (pin_D7)
 #define MICROPY_HW_SDMMC2_D0        (pin_B14)

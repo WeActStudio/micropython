@@ -270,6 +270,31 @@ extern const struct _mp_obj_module_t audio_module;
 #else
 #define AUDIO_BUILTIN_MODULE
 #endif
+#if MICROPY_PY_LCD
+extern const struct _mp_obj_module_t lcd_module;
+#define LCD_BUILTIN_MODULE              {  MP_ROM_QSTR(MP_QSTR_lcd), MP_ROM_PTR(&lcd_module) },
+#else
+#define LCD_BUILTIN_MODULE
+#endif
+#if MICROPY_PY_TV
+extern const struct _mp_obj_module_t tv_module;
+#define TV_BUILTIN_MODULE               {  MP_ROM_QSTR(MP_QSTR_tv), MP_ROM_PTR(&tv_module) },
+#else
+#define TV_BUILTIN_MODULE
+#endif
+#if MICROPY_PY_BUZZER
+extern const struct _mp_obj_module_t buzzer_module;
+#define BUZZER_BUILTIN_MODULE           {  MP_ROM_QSTR(MP_QSTR_buzzer), MP_ROM_PTR(&buzzer_module) },
+#else
+#define BUZZER_BUILTIN_MODULE
+#endif
+
+#if MICROPY_PY_SENSOR
+extern const struct _mp_obj_module_t sensor_module;
+#define SENSOR_BUILTIN_MODULE           {  MP_ROM_QSTR(MP_QSTR_sensor), MP_ROM_PTR(&sensor_module) },
+#else
+#define SENSOR_BUILTIN_MODULE
+#endif
 
 #define MICROPY_PORT_BUILTIN_MODULES \
     { MP_ROM_QSTR(MP_QSTR_board), MP_ROM_PTR(&board_module) }, \
@@ -281,6 +306,10 @@ extern const struct _mp_obj_module_t audio_module;
     { MP_OBJ_NEW_QSTR(MP_QSTR_fir),     (mp_obj_t)&fir_module }, \
     ULAB_BUILTIN_MODULE \
     AUDIO_BUILTIN_MODULE \
+    LCD_BUILTIN_MODULE \
+    TV_BUILTIN_MODULE \
+    BUZZER_BUILTIN_MODULE \
+    SENSOR_BUILTIN_MODULE \
     BLE_MODULE \
     MUSIC_MODULE \
     UBLUEPY_MODULE \
