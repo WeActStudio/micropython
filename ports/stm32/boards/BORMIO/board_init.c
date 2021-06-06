@@ -14,7 +14,8 @@ void BORMIO_board_early_init(void) {
 }
 
 void BORMIO_reboot_to_bootloader(void) {
-    extern RTC_HandleTypeDef RTCHandle;
+    RTC_HandleTypeDef RTCHandle;
+    RTCHandle.Instance = RTC;
     HAL_RTCEx_BKUPWrite(&RTCHandle, RTC_BKP_DR0, 0xDF59);
     NVIC_SystemReset();
 }

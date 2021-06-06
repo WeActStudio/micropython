@@ -17,11 +17,12 @@
 #define MICROPY_HW_ENABLE_MMCARD    (0)
 // Reserved DMA streams
 #define MICROPY_HW_DMA2S1_IS_RESERVED
+#define MICROPY_HW_TIM_IS_RESERVED(id) (id == 1 || id == 6)
 
 #define MICROPY_BOARD_EARLY_INIT BORMIO_board_early_init
 void BORMIO_board_early_init(void);
 
-#define ARDUINO_1200BPS_TOUCH BORMIO_reboot_to_bootloader
+#define MICROPY_RESET_TO_BOOTLOADER BORMIO_reboot_to_bootloader
 void BORMIO_reboot_to_bootloader(void);
 
 void BORMIO_board_low_power(int mode);
@@ -40,6 +41,7 @@ void BORMIO_board_low_power(int mode);
 
 // Use external SPI flash for storage
 #define MICROPY_HW_ENABLE_INTERNAL_FLASH_STORAGE (0)
+#define MICROPY_HW_SPIFLASH_ENABLE_CACHE (1)
 
 // QSPI Flash 128Mbit
 #define MICROPY_HW_SPIFLASH_SIZE_BITS (120 * 1024 * 1024)
@@ -96,13 +98,13 @@ extern struct _spi_bdev_t spi_bdev;
 #define MICROPY_HW_LED_OFF(pin)     (mp_hal_pin_high(pin))
 
 // WiFi SDMMC
-#define MICROPY_HW_WIFI_SDMMC       (2)
-#define MICROPY_HW_SDMMC2_CK        (pin_C1)
-#define MICROPY_HW_SDMMC2_CMD       (pin_D7)
-#define MICROPY_HW_SDMMC2_D0        (pin_B14)
-#define MICROPY_HW_SDMMC2_D1        (pin_B15)
-#define MICROPY_HW_SDMMC2_D2        (pin_G11)
-#define MICROPY_HW_SDMMC2_D3        (pin_B4)
+#define MICROPY_HW_SDIO_SDMMC       (2)
+#define MICROPY_HW_SDIO_CK          (pin_C1)
+#define MICROPY_HW_SDIO_CMD         (pin_D7)
+#define MICROPY_HW_SDIO_D0          (pin_B14)
+#define MICROPY_HW_SDIO_D1          (pin_B15)
+#define MICROPY_HW_SDIO_D2          (pin_G11)
+#define MICROPY_HW_SDIO_D3          (pin_B4)
 
 // USB config
 #define MICROPY_HW_USB_FS           (1)

@@ -136,7 +136,7 @@ void cyw43_tcpip_init(cyw43_t *self, int itf) {
     memcpy(&mdns_hostname[0], "PYBD", 4);
     mp_hal_get_mac_ascii(MP_HAL_MAC_WLAN0, 8, 4, &mdns_hostname[4]);
     mdns_hostname[8] = '\0';
-    mdns_resp_add_netif(n, mdns_hostname);
+    mdns_resp_add_netif(n, mdns_hostname, 60);
     #endif
 }
 

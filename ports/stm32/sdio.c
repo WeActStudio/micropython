@@ -58,53 +58,58 @@ static volatile uint8_t *sdmmc_buf_top;
 #define DMA_BUF_SIZE    (4*1024)
 static uint8_t OMV_ATTR_SECTION(OMV_ATTR_ALIGNED(DMA_BUFFER[DMA_BUF_SIZE], 4), ".d1_dma_buffer");
 
-// The H7/F7/L4 have 2 SDMMC peripherals, but at the moment this driver only supports using one of them at a time.
-// Use SDMMC2 only if the WiFi SDMMC instance is defined explicitly as SDMMC2, otherwise SDMMC1 is used by default.
+// The H7/F7/L4 have 2 SDMMC peripherals, but at the moment this driver only supports
+// using one of them in a given build, selected by MICROPY_HW_SDIO_SDMMC.
 
-#if (MICROPY_HW_WIFI_SDMMC == 2)
-#define SDMMC               (SDMMC2)
-#define SDMMC_IRQn          (SDMMC2_IRQn)
-#define SDMMC_IRQ_HANDLER   SDMMC2_IRQHandler
-#define SDMMC_CLK_ENABLE()  __HAL_RCC_SDMMC2_CLK_ENABLE()
-#define SDMMC_CLK_DISABLE() __HAL_RCC_SDMMC2_CLK_DISABLE()
+#if MICROPY_HW_SDIO_SDMMC == 1
+#define SDMMC                   SDMMC1
+#define SDMMC_IRQn              SDMMC1_IRQn
+#define SDMMC_IRQHandler        SDMMC1_IRQHandler
+#define SDMMC_CLK_ENABLE()      __HAL_RCC_SDMMC1_CLK_ENABLE()
+#define SDMMC_CLK_DISABLE()     __HAL_RCC_SDMMC1_CLK_DISABLE()
+#define SDMMC_IS_CLK_DISABLED() __HAL_RCC_SDMMC1_IS_CLK_DISABLED()
+#define STATIC_AF_SDMMC_CK      STATIC_AF_SDMMC1_CK
+#define STATIC_AF_SDMMC_CMD     STATIC_AF_SDMMC1_CMD
+#define STATIC_AF_SDMMC_D0      STATIC_AF_SDMMC1_D0
+#define STATIC_AF_SDMMC_D1      STATIC_AF_SDMMC1_D1
+#define STATIC_AF_SDMMC_D2      STATIC_AF_SDMMC1_D2
+#define STATIC_AF_SDMMC_D3      STATIC_AF_SDMMC1_D3
 #else
-#define SDMMC               (SDMMC1)
-#define SDMMC_IRQn          (SDMMC1_IRQn)
-#define SDMMC_IRQ_HANDLER   SDMMC1_IRQHandler
-#define SDMMC_CLK_ENABLE()  __HAL_RCC_SDMMC1_CLK_ENABLE()
-#define SDMMC_CLK_DISABLE() __HAL_RCC_SDMMC1_CLK_DISABLE()
+#if defined(STM32F7)
+#error Due to DMA configuration, only SDMMC1 is currently supported on F7
+#endif
+#define SDMMC                   SDMMC2
+#define SDMMC_IRQn              SDMMC2_IRQn
+#define SDMMC_IRQHandler        SDMMC2_IRQHandler
+#define SDMMC_CLK_ENABLE()      __HAL_RCC_SDMMC2_CLK_ENABLE()
+#define SDMMC_CLK_DISABLE()     __HAL_RCC_SDMMC2_CLK_DISABLE()
+#define SDMMC_IS_CLK_DISABLED() __HAL_RCC_SDMMC2_IS_CLK_DISABLED()
+#define STATIC_AF_SDMMC_CK      STATIC_AF_SDMMC2_CK
+#define STATIC_AF_SDMMC_CMD     STATIC_AF_SDMMC2_CMD
+#define STATIC_AF_SDMMC_D0      STATIC_AF_SDMMC2_D0
+#define STATIC_AF_SDMMC_D1      STATIC_AF_SDMMC2_D1
+#define STATIC_AF_SDMMC_D2      STATIC_AF_SDMMC2_D2
+#define STATIC_AF_SDMMC_D3      STATIC_AF_SDMMC2_D3
 #endif
 
 // If no custom SDIO pins defined, use the default ones
-#ifndef MICROPY_HW_SDMMC1_CK
-#define MICROPY_HW_SDMMC1_D0 (pin_C8)
-#define MICROPY_HW_SDMMC1_D1 (pin_C9)
-#define MICROPY_HW_SDMMC1_D2 (pin_C10)
-#define MICROPY_HW_SDMMC1_D3 (pin_C11)
-#define MICROPY_HW_SDMMC1_CK (pin_C12)
-#define MICROPY_HW_SDMMC1_CMD (pin_D2)
+#ifndef MICROPY_HW_SDIO_CK
+#define MICROPY_HW_SDIO_D0      (pin_C8)
+#define MICROPY_HW_SDIO_D1      (pin_C9)
+#define MICROPY_HW_SDIO_D2      (pin_C10)
+#define MICROPY_HW_SDIO_D3      (pin_C11)
+#define MICROPY_HW_SDIO_CK      (pin_C12)
+#define MICROPY_HW_SDIO_CMD     (pin_D2)
 #endif
-
 
 void sdio_init(uint32_t irq_pri) {
     // configure IO pins
-    #if (MICROPY_HW_WIFI_SDMMC == 2)
-    // Use SDMMC2 peripheral with pins provided by the board's config
-    mp_hal_pin_config_alt_static(MICROPY_HW_SDMMC2_CK, MP_HAL_PIN_MODE_ALT, MP_HAL_PIN_PULL_UP, STATIC_AF_SDMMC2_CK);
-    mp_hal_pin_config_alt_static(MICROPY_HW_SDMMC2_CMD, MP_HAL_PIN_MODE_ALT, MP_HAL_PIN_PULL_UP, STATIC_AF_SDMMC2_CMD);
-    mp_hal_pin_config_alt_static(MICROPY_HW_SDMMC2_D0, MP_HAL_PIN_MODE_ALT, MP_HAL_PIN_PULL_UP, STATIC_AF_SDMMC2_D0);
-    mp_hal_pin_config_alt_static(MICROPY_HW_SDMMC2_D1, MP_HAL_PIN_MODE_ALT, MP_HAL_PIN_PULL_UP, STATIC_AF_SDMMC2_D1);
-    mp_hal_pin_config_alt_static(MICROPY_HW_SDMMC2_D2, MP_HAL_PIN_MODE_ALT, MP_HAL_PIN_PULL_UP, STATIC_AF_SDMMC2_D2);
-    mp_hal_pin_config_alt_static(MICROPY_HW_SDMMC2_D3, MP_HAL_PIN_MODE_ALT, MP_HAL_PIN_PULL_UP, STATIC_AF_SDMMC2_D3);
-    #else
-    // Default SDIO/SDMMC1 config
-    mp_hal_pin_config_alt_static(MICROPY_HW_SDMMC1_CK, MP_HAL_PIN_MODE_ALT, MP_HAL_PIN_PULL_UP, STATIC_AF_SDMMC1_CK);
-    mp_hal_pin_config_alt_static(MICROPY_HW_SDMMC1_CMD, MP_HAL_PIN_MODE_ALT, MP_HAL_PIN_PULL_UP, STATIC_AF_SDMMC1_CMD);
-    mp_hal_pin_config_alt_static(MICROPY_HW_SDMMC1_D0, MP_HAL_PIN_MODE_ALT, MP_HAL_PIN_PULL_UP, STATIC_AF_SDMMC1_D0);
-    mp_hal_pin_config_alt_static(MICROPY_HW_SDMMC1_D1, MP_HAL_PIN_MODE_ALT, MP_HAL_PIN_PULL_UP, STATIC_AF_SDMMC1_D1);
-    mp_hal_pin_config_alt_static(MICROPY_HW_SDMMC1_D2, MP_HAL_PIN_MODE_ALT, MP_HAL_PIN_PULL_UP, STATIC_AF_SDMMC1_D2);
-    mp_hal_pin_config_alt_static(MICROPY_HW_SDMMC1_D3, MP_HAL_PIN_MODE_ALT, MP_HAL_PIN_PULL_UP, STATIC_AF_SDMMC1_D3);
-    #endif
+    mp_hal_pin_config_alt_static(MICROPY_HW_SDIO_D0, MP_HAL_PIN_MODE_ALT, MP_HAL_PIN_PULL_UP, STATIC_AF_SDMMC_D0);
+    mp_hal_pin_config_alt_static(MICROPY_HW_SDIO_D1, MP_HAL_PIN_MODE_ALT, MP_HAL_PIN_PULL_UP, STATIC_AF_SDMMC_D1);
+    mp_hal_pin_config_alt_static(MICROPY_HW_SDIO_D2, MP_HAL_PIN_MODE_ALT, MP_HAL_PIN_PULL_UP, STATIC_AF_SDMMC_D2);
+    mp_hal_pin_config_alt_static(MICROPY_HW_SDIO_D3, MP_HAL_PIN_MODE_ALT, MP_HAL_PIN_PULL_UP, STATIC_AF_SDMMC_D3);
+    mp_hal_pin_config_alt_static(MICROPY_HW_SDIO_CK, MP_HAL_PIN_MODE_ALT, MP_HAL_PIN_PULL_NONE, STATIC_AF_SDMMC_CK);
+    mp_hal_pin_config_alt_static(MICROPY_HW_SDIO_CMD, MP_HAL_PIN_MODE_ALT, MP_HAL_PIN_PULL_UP, STATIC_AF_SDMMC_CMD);
 
     SDMMC_CLK_ENABLE(); // enable SDIO peripheral
 
@@ -140,6 +145,21 @@ void sdio_deinit(void) {
     #endif
 }
 
+void sdio_reenable(void) {
+    if (SDMMC_IS_CLK_DISABLED()) {
+        SDMMC_CLK_ENABLE(); // enable SDIO peripheral
+        sdio_enable_high_speed_4bit();
+    }
+}
+
+void sdio_enable_irq(bool enable) {
+    if (enable) {
+        SDMMC->MASK |= SDMMC_MASK_SDIOITIE;
+    } else {
+        SDMMC->MASK &= ~SDMMC_MASK_SDIOITIE;
+    }
+}
+
 void sdio_enable_high_speed_4bit(void) {
     SDMMC_TypeDef *SDIO = SDMMC;
     SDIO->POWER = 0; // power off
@@ -160,7 +180,7 @@ void sdio_enable_high_speed_4bit(void) {
     mp_hal_delay_us(10);
 }
 
-void SDMMC_IRQ_HANDLER(void) {
+void SDMMC_IRQHandler(void) {
     if (SDMMC->STA & SDMMC_STA_CMDREND) {
         SDMMC->ICR = SDMMC_ICR_CMDRENDC;
         uint32_t r1 = SDMMC->RESP1;
@@ -268,7 +288,6 @@ int sdio_transfer(uint32_t cmd, uint32_t arg, uint32_t *resp) {
     #if defined(STM32F7)
     DMA2_Stream3->CR = 0; // ensure DMA is reset
     #endif
-
     SDMMC->ICR = SDMMC_STATIC_FLAGS; // clear interrupts
     SDMMC->ARG = arg;
     SDMMC->CMD = cmd | SDMMC_CMD_WAITRESP_0 | SDMMC_CMD_CPSMEN;
@@ -341,7 +360,7 @@ int sdio_transfer_cmd53(bool write, uint32_t block_size, uint32_t arg, size_t le
     }
 
     uint8_t *buf = buf_in;
-    bool dma = (len > 16) && DMA_BUFFER(buf) && IS_AXI_SRAM(buf);
+    bool dma = (len > 16) && DMA_BUFFER(buf) && IS_D1_ADDR(buf);
     bool dma_buf_used = false;
 
     // For read transfers bigger than FIFO size with a non-DMA buffer provided, we use

@@ -103,6 +103,7 @@
 #define MICROPY_PY_BUILTINS_SLICE_INDICES (1)
 #define MICROPY_PY_BUILTINS_ROUND_INT (1)
 #define MICROPY_PY_ALL_SPECIAL_METHODS (1)
+#define MICROPY_PY_REVERSE_SPECIAL_METHODS (1)
 #define MICROPY_PY_BUILTINS_COMPILE (MICROPY_ENABLE_COMPILER)
 #define MICROPY_PY_BUILTINS_EXECFILE (MICROPY_ENABLE_COMPILER)
 #define MICROPY_PY_BUILTINS_NOTIMPLEMENTED (1)
@@ -171,32 +172,38 @@
 #define MICROPY_PY_UCRYPTOLIB       (MICROPY_PY_USSL)
 #ifndef MICROPY_PY_UBINASCII
 #define MICROPY_PY_UBINASCII        (1)
+#define MICROPY_PY_UBINASCII_CRC32  (1)
 #endif
+#ifndef MICROPY_PY_UOS
+#define MICROPY_PY_UOS              (1)
+#endif
+#define MICROPY_PY_OS_DUPTERM       (3)
+#define MICROPY_PY_UOS_DUPTERM_BUILTIN_STREAM (1)
 #ifndef MICROPY_PY_URANDOM
 #define MICROPY_PY_URANDOM          (1)
+#define MICROPY_PY_URANDOM_SEED_INIT_FUNC (rng_get())
 #endif
 #ifndef MICROPY_PY_URANDOM_EXTRA_FUNCS
 #define MICROPY_PY_URANDOM_EXTRA_FUNCS (1)
 #endif
 #define MICROPY_PY_USELECT          (1)
+#ifndef MICROPY_PY_UTIME
+#define MICROPY_PY_UTIME            (1)
+#endif
+#define MICROPY_PY_UTIME_MP_HAL     (MICROPY_PY_UTIME)
 #ifndef MICROPY_PY_UTIMEQ
 #define MICROPY_PY_UTIMEQ           (1)
 #endif
-#define MICROPY_PY_UTIME_MP_HAL     (1)
-#define MICROPY_PY_OS_DUPTERM       (3)
-#define MICROPY_PY_UOS_DUPTERM_BUILTIN_STREAM (1)
 #define MICROPY_PY_LWIP_SOCK_RAW    (MICROPY_PY_LWIP)
+#ifndef MICROPY_PY_MACHINE
 #define MICROPY_PY_MACHINE          (1)
 #define MICROPY_PY_MACHINE_PULSE    (1)
 #define MICROPY_PY_MACHINE_PIN_MAKE_NEW mp_pin_make_new
 #define MICROPY_PY_MACHINE_I2C      (1)
-#if MICROPY_HW_ENABLE_HW_I2C
-#define MICROPY_PY_MACHINE_I2C_MAKE_NEW machine_hard_i2c_make_new
-#endif
 #define MICROPY_PY_MACHINE_SPI      (1)
 #define MICROPY_PY_MACHINE_SPI_MSB  (SPI_FIRSTBIT_MSB)
 #define MICROPY_PY_MACHINE_SPI_LSB  (SPI_FIRSTBIT_LSB)
-#define MICROPY_PY_MACHINE_SPI_MAKE_NEW machine_hard_spi_make_new
+#endif
 #define MICROPY_HW_SOFTSPI_MIN_DELAY (0)
 #define MICROPY_HW_SOFTSPI_MAX_BAUDRATE (HAL_RCC_GetSysClockFreq() / 48)
 #define MICROPY_PY_UWEBSOCKET       (MICROPY_PY_LWIP)
@@ -210,10 +217,13 @@
 #ifndef MICROPY_PY_NETWORK
 #define MICROPY_PY_NETWORK          (1)
 #endif
+#ifndef MICROPY_PY_ONEWIRE
+#define MICROPY_PY_ONEWIRE          (1)
+#endif
 
 // fatfs configuration used in ffconf.h
 #define MICROPY_FATFS_ENABLE_LFN       (2)
-#define MICROPY_FATFS_LFN_CODE_PAGE    (437) /* 1=SFN/ANSI 437=LFN/U.S.(OEM) */
+#define MICROPY_FATFS_LFN_CODE_PAGE    437 /* 1=SFN/ANSI 437=LFN/U.S.(OEM) */
 #define MICROPY_FATFS_USE_LABEL        (1)
 #define MICROPY_FATFS_RPATH            (2)
 #define MICROPY_FATFS_MULTI_PARTITION  (1)
@@ -287,8 +297,14 @@ extern const struct _mp_obj_module_t audio_module;
 extern const struct _mp_obj_module_t micro_speech_module;
 #endif
 
+#if MICROPY_PY_PYB
+#define PYB_BUILTIN_MODULE                  { MP_ROM_QSTR(MP_QSTR_pyb), MP_ROM_PTR(&pyb_module) },
+#else
+#define PYB_BUILTIN_MODULE
+#endif
+
 #if MICROPY_PY_STM
-#define STM_BUILTIN_MODULE               { MP_ROM_QSTR(MP_QSTR_stm), MP_ROM_PTR(&stm_module) },
+#define STM_BUILTIN_MODULE                  { MP_ROM_QSTR(MP_QSTR_stm), MP_ROM_PTR(&stm_module) },
 #else
 #define STM_BUILTIN_MODULE
 #endif
@@ -309,6 +325,28 @@ extern const struct _mp_obj_module_t micro_speech_module;
 #define IMU_BUILTIN_MODULE              {  MP_OBJ_NEW_QSTR(MP_QSTR_imu),   (mp_obj_t)&imu_module },
 #else
 #define IMU_BUILTIN_MODULE
+#endif
+
+#if MICROPY_PY_MACHINE
+#define MACHINE_BUILTIN_MODULE              { MP_ROM_QSTR(MP_QSTR_umachine), MP_ROM_PTR(&machine_module) },
+#define MACHINE_BUILTIN_MODULE_CONSTANTS    { MP_ROM_QSTR(MP_QSTR_machine), MP_ROM_PTR(&machine_module) },
+#else
+#define MACHINE_BUILTIN_MODULE
+#define MACHINE_BUILTIN_MODULE_CONSTANTS
+#endif
+
+#if MICROPY_PY_UOS
+#define UOS_BUILTIN_MODULE                  { MP_ROM_QSTR(MP_QSTR_uos), MP_ROM_PTR(&mp_module_uos) },
+#else
+#define UOS_BUILTIN_MODULE
+#endif
+
+#if MICROPY_PY_UTIME
+#define UTIME_BUILTIN_MODULE                { MP_ROM_QSTR(MP_QSTR_utime), MP_ROM_PTR(&mp_module_utime) },
+#define UTIME_BUILTIN_MODULE_CONSTANTS      { MP_ROM_QSTR(MP_QSTR_time),  MP_ROM_PTR(&mp_module_utime) },
+#else
+#define UTIME_BUILTIN_MODULE
+#define UTIME_BUILTIN_MODULE_CONSTANTS
 #endif
 
 #if MICROPY_PY_USOCKET && MICROPY_PY_LWIP
@@ -370,39 +408,45 @@ extern const struct _mp_obj_module_t micro_speech_module;
 #define BUZZER_BUILTIN_MODULE
 #endif
 
+#if MICROPY_PY_ONEWIRE
+#define ONEWIRE_BUILTIN_MODULE              { MP_ROM_QSTR(MP_QSTR__onewire), MP_ROM_PTR(&mp_module_onewire) },
+#else
+#define ONEWIRE_BUILTIN_MODULE
+#endif
+
 #define MICROPY_PORT_BUILTIN_MODULES \
-    { MP_OBJ_NEW_QSTR(MP_QSTR_umachine), (mp_obj_t)&machine_module }, \
-    { MP_OBJ_NEW_QSTR(MP_QSTR_pyb), (mp_obj_t)&pyb_module }, \
+    MACHINE_BUILTIN_MODULE \
+    PYB_BUILTIN_MODULE \
     STM_BUILTIN_MODULE \
-    { MP_OBJ_NEW_QSTR(MP_QSTR_uos),     (mp_obj_t)&mp_module_uos }, \
-    { MP_OBJ_NEW_QSTR(MP_QSTR_time),    (mp_obj_t)&mp_module_utime }, \
-    { MP_OBJ_NEW_QSTR(MP_QSTR_utime),   (mp_obj_t)&mp_module_utime }, \
-    { MP_OBJ_NEW_QSTR(MP_QSTR_omv),     (mp_obj_t)&omv_module }, \
+    UOS_BUILTIN_MODULE \
+    UTIME_BUILTIN_MODULE \
+    SOCKET_BUILTIN_MODULE \
+    NETWORK_BUILTIN_MODULE \
+    ONEWIRE_BUILTIN_MODULE \
     SENSOR_BUILTIN_MODULE \
-    { MP_OBJ_NEW_QSTR(MP_QSTR_image),   (mp_obj_t)&image_module }, \
     LCD_BUILTIN_MODULE \
-    { MP_OBJ_NEW_QSTR(MP_QSTR_fir),     (mp_obj_t)&fir_module }, \
-    { MP_OBJ_NEW_QSTR(MP_QSTR_gif),     (mp_obj_t)&gif_module }, \
-    { MP_OBJ_NEW_QSTR(MP_QSTR_mjpeg),   (mp_obj_t)&mjpeg_module }, \
-    { MP_OBJ_NEW_QSTR(MP_QSTR_cpufreq), (mp_obj_t)&cpufreq_module }, \
-    { MP_OBJ_NEW_QSTR(MP_QSTR_tf),      (mp_obj_t)&tf_module }, \
     TV_BUILTIN_MODULE \
     BUZZER_BUILTIN_MODULE \
     CUBEAI_BUILTIN_MODULE \
     ULAB_BUILTIN_MODULE \
     IMU_BUILTIN_MODULE \
-    SOCKET_BUILTIN_MODULE \
-    NETWORK_BUILTIN_MODULE \
     AUDIO_BUILTIN_MODULE \
     MICRO_SPEECH_BUILTIN_MODULE \
-    { MP_ROM_QSTR(MP_QSTR__onewire), MP_ROM_PTR(&mp_module_onewire) }, \
+    { MP_OBJ_NEW_QSTR(MP_QSTR_omv),     (mp_obj_t)&omv_module }, \
+    { MP_OBJ_NEW_QSTR(MP_QSTR_image),   (mp_obj_t)&image_module }, \
+    { MP_OBJ_NEW_QSTR(MP_QSTR_fir),     (mp_obj_t)&fir_module }, \
+    { MP_OBJ_NEW_QSTR(MP_QSTR_gif),     (mp_obj_t)&gif_module }, \
+    { MP_OBJ_NEW_QSTR(MP_QSTR_mjpeg),   (mp_obj_t)&mjpeg_module }, \
+    { MP_OBJ_NEW_QSTR(MP_QSTR_cpufreq), (mp_obj_t)&cpufreq_module }, \
+    { MP_OBJ_NEW_QSTR(MP_QSTR_tf),      (mp_obj_t)&tf_module }, \
 
 // extra constants
 #define MICROPY_PORT_CONSTANTS \
-    { MP_ROM_QSTR(MP_QSTR_umachine), MP_ROM_PTR(&machine_module) }, \
-    { MP_ROM_QSTR(MP_QSTR_machine), MP_ROM_PTR(&machine_module) }, \
-    { MP_ROM_QSTR(MP_QSTR_pyb), MP_ROM_PTR(&pyb_module) }, \
+    MACHINE_BUILTIN_MODULE \
+    MACHINE_BUILTIN_MODULE_CONSTANTS \
+    PYB_BUILTIN_MODULE \
     STM_BUILTIN_MODULE \
+    UTIME_BUILTIN_MODULE_CONSTANTS \
 
 #define MP_STATE_PORT MP_STATE_VM
 
@@ -414,7 +458,8 @@ extern const struct _mp_obj_module_t micro_speech_module;
 
 #if MICROPY_BLUETOOTH_NIMBLE
 struct _mp_bluetooth_nimble_root_pointers_t;
-#define MICROPY_PORT_ROOT_POINTER_BLUETOOTH_NIMBLE void **bluetooth_nimble_memory; struct _mp_bluetooth_nimble_root_pointers_t *bluetooth_nimble_root_pointers;
+struct _mp_bluetooth_nimble_malloc_t;
+#define MICROPY_PORT_ROOT_POINTER_BLUETOOTH_NIMBLE struct _mp_bluetooth_nimble_malloc_t *bluetooth_nimble_memory; struct _mp_bluetooth_nimble_root_pointers_t *bluetooth_nimble_root_pointers;
 #else
 #define MICROPY_PORT_ROOT_POINTER_BLUETOOTH_NIMBLE
 #endif
@@ -424,6 +469,10 @@ struct _mp_bluetooth_btstack_root_pointers_t;
 #define MICROPY_PORT_ROOT_POINTER_BLUETOOTH_BTSTACK struct _mp_bluetooth_btstack_root_pointers_t *bluetooth_btstack_root_pointers;
 #else
 #define MICROPY_PORT_ROOT_POINTER_BLUETOOTH_BTSTACK
+#endif
+
+#ifndef MICROPY_BOARD_ROOT_POINTERS
+#define MICROPY_BOARD_ROOT_POINTERS
 #endif
 
 #define MICROPY_PORT_ROOT_POINTERS \
@@ -449,7 +498,7 @@ struct _mp_bluetooth_btstack_root_pointers_t;
     struct _pyb_uart_obj_t *pyb_stdio_uart; \
     \
     /* pointers to all UART objects (if they have been created) */ \
-    struct _pyb_uart_obj_t *pyb_uart_obj_all[MICROPY_HW_MAX_UART]; \
+    struct _pyb_uart_obj_t *pyb_uart_obj_all[MICROPY_HW_MAX_UART + MICROPY_HW_MAX_LPUART]; \
     \
     /* pointers to all CAN objects (if they have been created) */ \
     struct _pyb_can_obj_t *pyb_can_obj_all[MICROPY_HW_MAX_CAN]; \
@@ -457,9 +506,13 @@ struct _mp_bluetooth_btstack_root_pointers_t;
     /* list of registered NICs */ \
     mp_obj_list_t mod_network_nic_list; \
     \
+    /* root pointers for sub-systems */ \
     MICROPY_PORT_ROOT_POINTER_MBEDTLS \
     MICROPY_PORT_ROOT_POINTER_BLUETOOTH_NIMBLE \
-        MICROPY_PORT_ROOT_POINTER_BLUETOOTH_BTSTACK \
+    MICROPY_PORT_ROOT_POINTER_BLUETOOTH_BTSTACK \
+    \
+    /* root pointers defined by a board */ \
+        MICROPY_BOARD_ROOT_POINTERS \
 
 // type definitions for the specific machine
 
@@ -474,8 +527,6 @@ typedef int mp_int_t; // must be pointer size
 typedef unsigned int mp_uint_t; // must be pointer size
 
 typedef long mp_off_t;
-
-#define MP_PLAT_PRINT_STRN(str, len) mp_hal_stdout_tx_strn_cooked(str, len)
 
 // We have inlined IRQ functions for efficiency (they are generally
 // 1 machine instruction).
@@ -524,14 +575,27 @@ static inline mp_uint_t disable_irq(void) {
 #define MICROPY_THREAD_YIELD()
 #endif
 
-// The LwIP interface must run at a raised IRQ priority
-#define MICROPY_PY_LWIP_ENTER   uint32_t atomic_state = raise_irq_pri(IRQ_PRI_PENDSV);
-#define MICROPY_PY_LWIP_REENTER atomic_state = raise_irq_pri(IRQ_PRI_PENDSV);
-#define MICROPY_PY_LWIP_EXIT    restore_irq_pri(atomic_state);
+// For regular code that wants to prevent "background tasks" from running.
+// These background tasks (LWIP, Bluetooth) run in PENDSV context.
+#define MICROPY_PY_PENDSV_ENTER   uint32_t atomic_state = raise_irq_pri(IRQ_PRI_PENDSV);
+#define MICROPY_PY_PENDSV_REENTER atomic_state = raise_irq_pri(IRQ_PRI_PENDSV);
+#define MICROPY_PY_PENDSV_EXIT    restore_irq_pri(atomic_state);
 
-// Bluetooth calls must run at a raised IRQ priority
-#define MICROPY_PY_BLUETOOTH_ENTER MICROPY_PY_LWIP_ENTER
-#define MICROPY_PY_BLUETOOTH_EXIT MICROPY_PY_LWIP_EXIT
+// Prevent the "LWIP task" from running.
+#define MICROPY_PY_LWIP_ENTER   MICROPY_PY_PENDSV_ENTER
+#define MICROPY_PY_LWIP_REENTER MICROPY_PY_PENDSV_REENTER
+#define MICROPY_PY_LWIP_EXIT    MICROPY_PY_PENDSV_EXIT
+
+#if MICROPY_PY_BLUETOOTH_USE_SYNC_EVENTS
+// Bluetooth code only runs in the scheduler, no locking/mutex required.
+#define MICROPY_PY_BLUETOOTH_ENTER uint32_t atomic_state = 0;
+#define MICROPY_PY_BLUETOOTH_EXIT (void)atomic_state;
+#else
+// When async events are enabled, need to prevent PendSV execution racing with
+// scheduler execution.
+#define MICROPY_PY_BLUETOOTH_ENTER MICROPY_PY_PENDSV_ENTER
+#define MICROPY_PY_BLUETOOTH_EXIT  MICROPY_PY_PENDSV_EXIT
+#endif
 
 // We need an implementation of the log2 function which is not a macro
 #define MP_NEED_LOG2 (1)
@@ -539,3 +603,6 @@ static inline mp_uint_t disable_irq(void) {
 // We need to provide a declaration/definition of alloca()
 #include <alloca.h>
 #include <sys/types.h>
+
+// Needed for MICROPY_PY_URANDOM_SEED_INIT_FUNC.
+uint32_t rng_get(void);

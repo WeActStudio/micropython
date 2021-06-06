@@ -15,6 +15,7 @@
 // Reserved DMA streams
 #define MICROPY_HW_DMA1S0_IS_RESERVED
 #define MICROPY_HW_DMA2S1_IS_RESERVED
+#define MICROPY_HW_TIM_IS_RESERVED(id) (id == 1 || id == 6)
 
 // Note these are not used in top system.c.
 #define MICROPY_HW_CLK_PLLM         (3)

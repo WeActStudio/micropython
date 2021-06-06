@@ -88,5 +88,5 @@ void NANO33_board_deinit(void);
 #define MICROPY_HW_PWM2_NAME         "PWM2"
 #define MICROPY_HW_PWM3_NAME         "PWM3"
 
-#define USBD_PID                     (0x005B)
+#define USBD_PID                     (0x015A)
 #define USBD_VID                     (0x2341)

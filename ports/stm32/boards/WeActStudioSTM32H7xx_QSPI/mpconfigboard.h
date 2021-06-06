@@ -16,6 +16,7 @@
 // Reserved DMA streams
 #define MICROPY_HW_DMA1S0_IS_RESERVED
 #define MICROPY_HW_DMA2S1_IS_RESERVED
+#define MICROPY_HW_TIM_IS_RESERVED(id) (id == 1 || id == 6)
 
 // Note these are not used in top system.c.
 #define MICROPY_HW_CLK_PLLM         (5)
@@ -80,12 +81,13 @@
 #define MICROPY_HW_CAN2_RX    (pin_B12)
 
 // SD card detect switch
-#define MICROPY_HW_SDMMC1_CK                (pin_C12)
-#define MICROPY_HW_SDMMC1_CMD               (pin_D2)
-#define MICROPY_HW_SDMMC1_D0                (pin_C8)
-#define MICROPY_HW_SDMMC1_D1                (pin_C9)
-#define MICROPY_HW_SDMMC1_D2                (pin_C10)
-#define MICROPY_HW_SDMMC1_D3                (pin_C11)
+#define MICROPY_HW_SDCARD_SDMMC       (1)
+#define MICROPY_HW_SDCARD_CK                (pin_C12)
+#define MICROPY_HW_SDCARD_CMD               (pin_D2)
+#define MICROPY_HW_SDCARD_D0                (pin_C8)
+#define MICROPY_HW_SDCARD_D1                (pin_C9)
+#define MICROPY_HW_SDCARD_D2                (pin_C10)
+#define MICROPY_HW_SDCARD_D3                (pin_C11)
 #define MICROPY_HW_SDCARD_DETECT_PIN        (pin_D4)
 #define MICROPY_HW_SDCARD_DETECT_PULL       (GPIO_PULLUP)
 #define MICROPY_HW_SDCARD_DETECT_PRESENT    (GPIO_PIN_SET)
@@ -108,6 +110,7 @@
 // Use external SPI flash for storage
 #define MICROPY_HW_ENABLE_INTERNAL_FLASH_STORAGE (0)
 #define WEACTSTUDIO_USE_QSPIFlash_AS_FLASH_STORAGE  (0)
+#define MICROPY_HW_SPIFLASH_ENABLE_CACHE (1)
 
 // SPI Flash 64MBits
 #define MICROPY_HW_SPIFLASH_SIZE_BITS (64 * 1024 * 1024)

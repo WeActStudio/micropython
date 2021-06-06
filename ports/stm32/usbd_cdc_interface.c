@@ -214,9 +214,13 @@ static uint16_t usbd_cdc_tx_send_length(usbd_cdc_itf_t *cdc) {
     return MIN(usbd_cdc_tx_buffer_size(cdc), to_end);
 }
 
-static void usbd_cdc_tx_buffer_put(usbd_cdc_itf_t *cdc, uint8_t data) {
+static void usbd_cdc_tx_buffer_put(usbd_cdc_itf_t *cdc, uint8_t data, bool check_overflow) {
     cdc->tx_buf[usbd_cdc_tx_buffer_mask(cdc->tx_buf_ptr_in)] = data;
     cdc->tx_buf_ptr_in++;
+    if (check_overflow && usbd_cdc_tx_buffer_size(cdc) > USBD_CDC_TX_DATA_SIZE) {
+        cdc->tx_buf_ptr_out++;
+        cdc->tx_buf_ptr_out_next = cdc->tx_buf_ptr_out;
+    }
 }
 
 static uint8_t *usbd_cdc_tx_buffer_getp(usbd_cdc_itf_t *cdc, uint16_t len) {
@@ -233,7 +237,6 @@ void usbd_cdc_tx_ready(usbd_cdc_state_t *cdc_in) {
         if (cdc->dbg_xfer_length) {
             send_packet(cdc);
         } else {
-            cdc->tx_buf_ptr_out = cdc->tx_buf_ptr_out_next;
             if (cdc->dbg_last_packet == CDC_DATA_FS_MAX_PACKET_SIZE) {
                 cdc->dbg_last_packet = 0;
                 USBD_CDC_TransmitPacket(&cdc->base, 0, cdc->dbg_xfer_buffer);
@@ -319,6 +322,10 @@ void usbd_cdc_rx_check_resume(usbd_cdc_itf_t *cdc) {
 }
 
 uint32_t usbd_cdc_buf_len(usbd_cdc_itf_t *cdc) {
+    cdc->tx_buf_ptr_out = cdc->tx_buf_ptr_out_next;
+    if (usbd_cdc_tx_buffer_empty(cdc)) {
+        return 0;
+    }
     return usbd_cdc_tx_send_length(cdc);
 }
 
@@ -421,7 +428,7 @@ int usbd_cdc_tx(usbd_cdc_itf_t *cdc, const uint8_t *buf, uint32_t len, uint32_t 
         }
 
         // Write data to device buffer
-        usbd_cdc_tx_buffer_put(cdc, buf[i]);
+        usbd_cdc_tx_buffer_put(cdc, buf[i], false);
     }
 
     usbd_cdc_try_tx(cdc);
@@ -446,6 +453,10 @@ void usbd_cdc_tx_always(usbd_cdc_itf_t *cdc, const uint8_t *buf, uint32_t len) {
             uint32_t start = HAL_GetTick();
             while (usbd_cdc_tx_buffer_full(cdc) && HAL_GetTick() - start <= 500) {
                 usbd_cdc_try_tx(cdc);
+                if (cdc->base.usbd->pdev->dev_state == USBD_STATE_SUSPENDED) {
+                    // The USB is suspended so buffer will never be drained; exit loop
+                    break;
+                }
                 if (query_irq() == IRQ_STATE_DISABLED) {
                     // IRQs disabled so buffer will never be drained; exit loop
                     break;
@@ -454,7 +465,7 @@ void usbd_cdc_tx_always(usbd_cdc_itf_t *cdc, const uint8_t *buf, uint32_t len) {
             }
         }
 
-        usbd_cdc_tx_buffer_put(cdc, buf[i]);
+        usbd_cdc_tx_buffer_put(cdc, buf[i], true);
     }
     usbd_cdc_try_tx(cdc);
 }

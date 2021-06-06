@@ -92,6 +92,7 @@
 #define TX_DESCR_0_TCH_Pos      (20)
 #define TX_DESCR_1_TBS1_Pos     (0)
 #endif
+
 // Configuration values
 
 #define PHY_INIT_TIMEOUT_MS (10000)
@@ -126,11 +127,8 @@ typedef struct _eth_t {
     struct dhcp dhcp_struct;
 } eth_t;
 
-#if defined(STM32H7)
-static eth_dma_t eth_dma __attribute__((aligned(16384))) __attribute__((section(".EthSect")));
-#else
 static eth_dma_t eth_dma __attribute__((aligned(16384)));
-#endif
+
 eth_t eth_instance;
 
 STATIC void eth_mac_deinit(eth_t *self);
@@ -213,6 +211,7 @@ STATIC int eth_mac_init(eth_t *self) {
     mp_hal_pin_config_alt_static(MICROPY_HW_ETH_RMII_TX_EN, MP_HAL_PIN_MODE_ALT, MP_HAL_PIN_PULL_NONE, STATIC_AF_ETH_RMII_TX_EN);
     mp_hal_pin_config_alt_static(MICROPY_HW_ETH_RMII_TXD0, MP_HAL_PIN_MODE_ALT, MP_HAL_PIN_PULL_NONE, STATIC_AF_ETH_RMII_TXD0);
     mp_hal_pin_config_alt_static(MICROPY_HW_ETH_RMII_TXD1, MP_HAL_PIN_MODE_ALT, MP_HAL_PIN_PULL_NONE, STATIC_AF_ETH_RMII_TXD1);
+
     #if defined(STM32H7)
     __HAL_RCC_ETH1MAC_CLK_ENABLE();
     __HAL_RCC_ETH1TX_CLK_ENABLE();
@@ -222,16 +221,15 @@ STATIC int eth_mac_init(eth_t *self) {
     __HAL_RCC_ETH_CLK_ENABLE();
     __HAL_RCC_ETHMAC_FORCE_RESET();
     #endif
+
     // Select RMII interface
     #if defined(STM32H7)
-    uint32_t tmpreg = SYSCFG->PMCR;
-    tmpreg &= ~SYSCFG_PMCR_EPIS_SEL_Msk;
-    tmpreg |= SYSCFG_PMCR_EPIS_SEL_2; // RMII
-    SYSCFG->PMCR = tmpreg;
+    SYSCFG->PMCR = (SYSCFG->PMCR & ~SYSCFG_PMCR_EPIS_SEL_Msk) | SYSCFG_PMCR_EPIS_SEL_2;
     #else
     __HAL_RCC_SYSCFG_CLK_ENABLE();
     SYSCFG->PMC |= SYSCFG_PMC_MII_RMII_SEL;
     #endif
+
     #if defined(STM32H7)
     __HAL_RCC_ETH1MAC_RELEASE_RESET();
 
@@ -245,51 +243,45 @@ STATIC int eth_mac_init(eth_t *self) {
     __HAL_RCC_ETHMACTX_CLK_SLEEP_ENABLE();
     __HAL_RCC_ETHMACRX_CLK_SLEEP_ENABLE();
     #endif
+
     // Do a soft reset of the MAC core
     #if defined(STM32H7)
-    ETH->DMAMR = ETH_DMAMR_SWR;
-    mp_hal_delay_ms(2);
-
-    // Wait for soft reset to finish
-    uint32_t t0 = mp_hal_ticks_ms();
-    while (ETH->DMAMR & ETH_DMAMR_SWR) {
-        if (mp_hal_ticks_ms() - t0 > 1000) {
-            return -MP_ETIMEDOUT;
-        }
-    }
+    #define ETH_SOFT_RESET(eth) do { eth->DMAMR = ETH_DMAMR_SWR; } while (0)
+    #define ETH_IS_RESET(eth) (eth->DMAMR & ETH_DMAMR_SWR)
     #else
-    ETH->DMABMR = ETH_DMABMR_SR;
+    #define ETH_SOFT_RESET(eth) do { eth->DMABMR = ETH_DMABMR_SR; } while (0)
+    #define ETH_IS_RESET(eth) (eth->DMABMR & ETH_DMABMR_SR)
+    #endif
+
+    ETH_SOFT_RESET(ETH);
     mp_hal_delay_ms(2);
 
     // Wait for soft reset to finish
     uint32_t t0 = mp_hal_ticks_ms();
-    while (ETH->DMABMR & ETH_DMABMR_SR) {
+    while (ETH_IS_RESET(ETH)) {
         if (mp_hal_ticks_ms() - t0 > 1000) {
             return -MP_ETIMEDOUT;
         }
     }
-    #endif
 
     // Set MII clock range
     uint32_t hclk = HAL_RCC_GetHCLKFreq();
-    #if defined(STM32H7)
-    tmpreg = ETH->MACMDIOAR;
-    tmpreg &= ~ETH_MACMDIOAR_CR; // clear CSR clock range bits
-
-    if (hclk < 35000000) {
-        tmpreg |= ETH_MACMDIOAR_CR_DIV16;
-    } else if (hclk < 60000000) {
-        tmpreg |= ETH_MACMDIOAR_CR_DIV26;
-    } else if (hclk < 100000000) {
-        tmpreg |= ETH_MACMDIOAR_CR_DIV42;
-    } else if (hclk < 150000000) {
-        tmpreg |= ETH_MACMDIOAR_CR_DIV62;
-    } else {
-        tmpreg = ETH_MACMDIOAR_CR_DIV102;
-    }
-    ETH->MACMDIOAR = tmpreg;
-    #else
     uint32_t cr_div;
+    #if defined(STM32H7)
+    cr_div = ETH->MACMDIOAR & ~ETH_MACMDIOAR_CR;
+    if (hclk < 35000000) {
+        cr_div |= ETH_MACMDIOAR_CR_DIV16;
+    } else if (hclk < 60000000) {
+        cr_div |= ETH_MACMDIOAR_CR_DIV26;
+    } else if (hclk < 100000000) {
+        cr_div |= ETH_MACMDIOAR_CR_DIV42;
+    } else if (hclk < 150000000) {
+        cr_div |= ETH_MACMDIOAR_CR_DIV62;
+    } else {
+        cr_div |= ETH_MACMDIOAR_CR_DIV102;
+    }
+    ETH->MACMDIOAR = cr_div;
+    #else
     if (hclk < 35000000) {
         cr_div = ETH_MACMIIAR_CR_Div16;
     } else if (hclk < 60000000) {
@@ -350,10 +342,7 @@ STATIC int eth_mac_init(eth_t *self) {
 
     // Burst mode configuration
     #if defined(STM32H7)
-    tmpreg = ETH->DMASBMR;
-    tmpreg &= ~ETH_DMASBMR_AAL;
-    tmpreg &= ~ETH_DMASBMR_FB;
-    ETH->DMASBMR = tmpreg;
+    ETH->DMASBMR = ETH->DMASBMR & ~ETH_DMASBMR_AAL & ~ETH_DMASBMR_FB;
     #else
     ETH->DMABMR = 0;
     #endif
@@ -361,11 +350,10 @@ STATIC int eth_mac_init(eth_t *self) {
 
     // Select DMA interrupts
     #if defined(STM32H7)
-    tmpreg = ETH->DMACIER;
-    tmpreg |= ETH_DMACIER_NIE // enable normal interrupts
+    ETH->DMACIER = ETH->DMACIER
+        | ETH_DMACIER_NIE // enable normal interrupts
         | ETH_DMACIER_RIE // enable RX interrupt
     ;
-    ETH->DMACIER = tmpreg;
     #else
     ETH->DMAIER =
         ETH_DMAIER_NISE // enable normal interrupts
@@ -541,6 +529,7 @@ STATIC int eth_tx_buf_get(size_t len, uint8_t **buf) {
     tx_descr->tdes2 = (uint32_t)*buf;
     tx_descr->tdes3 = (uint32_t)&eth_dma.tx_descr[(eth_dma.tx_descr_idx + 1) % TX_BUF_NUM];
     #endif
+
     return 0;
 }
 
@@ -580,6 +569,7 @@ STATIC int eth_tx_buf_send(void) {
         ETH->DMATPDR = 0;
     }
     #endif
+
     return 0;
 }
 
@@ -604,6 +594,7 @@ STATIC void eth_dma_rx_free(void) {
     rx_descr->rdes3 = (uint32_t)&eth_dma.rx_descr[eth_dma.rx_descr_idx];
     rx_descr->rdes0 = 1 << RX_DESCR_0_OWN_Pos;  // owned by DMA
     #endif
+
     // Notify ETH DMA that there is a new RX descriptor available
     __DMB();
     #if defined(STM32H7)
@@ -801,6 +792,10 @@ int eth_link_status(eth_t *self) {
 
 int eth_start(eth_t *self) {
     eth_lwip_deinit(self);
+
+    // Leave low power mode
+    eth_leave_low_power();
+
     int ret = eth_mac_init(self);
     if (ret < 0) {
         return ret;

@@ -41,6 +41,8 @@
 #include "ble_drv.h"
 #endif
 
+#include "pendsv.h"
+
 #define DBG_MAX_PACKET      (64)
 #define IDE_BAUDRATE_SLOW   (921600)
 #define IDE_BAUDRATE_FAST   (12000000)
@@ -309,6 +311,14 @@ void tud_cdc_line_coding_cb(uint8_t itf, cdc_line_coding_t const* p_line_coding)
 
     rx_ringbuf.iget = 0;
     rx_ringbuf.iput = 0;
+}
+
+void USBD_IRQHandler(void) {
+    dcd_int_handler(0);
+    // If there are any event to process, schedule a call to cdc loop.
+    if (cdc_tx_any() || tud_task_event_ready()) {
+        pendsv_schedule_dispatch(PENDSV_DISPATCH_CDC, usb_cdc_loop);
+    }
 }
 
 #endif // MICROPY_HW_USB_CDC

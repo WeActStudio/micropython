@@ -86,19 +86,6 @@ const nrfx_rtc_config_t rtc_config_time_ticks = {
     #endif
 };
 
-#include "pendsv.h"
-#include "usb_cdc.h"
-
-extern bool cdc_tx_any(void);
-void USBD_IRQHandler(void)
-{
-    dcd_int_handler(0);
-    // If there are any event to process, schedule a call to cdc loop.
-    if (cdc_tx_any() || tud_task_event_ready()) {
-        pendsv_schedule_dispatch(PENDSV_DISPATCH_CDC, usb_cdc_loop);
-    }
-}
-
 STATIC void rtc_irq_time(nrfx_rtc_int_type_t event) {
     // irq handler for overflow
     if (event == NRFX_RTC_INT_OVERFLOW) {

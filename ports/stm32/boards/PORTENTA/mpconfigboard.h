@@ -16,15 +16,17 @@
 #define MICROPY_HW_ENABLE_MMCARD    (0)
 // Reserved DMA streams
 #define MICROPY_HW_DMA2S1_IS_RESERVED
+#define MICROPY_HW_TIM_IS_RESERVED(id) (id == 1 || id == 6)
 
 #define MICROPY_HW_ENABLE_INTERNAL_FLASH_STORAGE (0)
+#define MICROPY_HW_SPIFLASH_ENABLE_CACHE (1)
 
 #define MICROPY_HW_CLK_USE_BYPASS	(1)
 
 #define MICROPY_BOARD_EARLY_INIT PORTENTA_board_early_init
 void PORTENTA_board_early_init(void);
 
-#define ARDUINO_1200BPS_TOUCH PORTENTA_reboot_to_bootloader
+#define MICROPY_RESET_TO_BOOTLOADER PORTENTA_reboot_to_bootloader
 void PORTENTA_reboot_to_bootloader(void);
 
 void PORTENTA_board_low_power(int mode);
@@ -99,15 +101,21 @@ void PORTENTA_board_osc_enable(int enable);
 #define MICROPY_HW_UART8_TX         (pin_J8)
 #define MICROPY_HW_UART8_RX         (pin_J9)
 
+// UART7 config
+#define MICROPY_HW_UART7_TX         (pyb_pin_BT_TXD)
+#define MICROPY_HW_UART7_RX         (pyb_pin_BT_RXD)
+#define MICROPY_HW_UART7_RTS        (pyb_pin_BT_RTS)
+#define MICROPY_HW_UART7_CTS        (pyb_pin_BT_CTS)
+
 // I2C busses
 #define MICROPY_HW_I2C3_SCL         (pin_H7)
 #define MICROPY_HW_I2C3_SDA         (pin_H8)
 
 // SPI
-//#define MICROPY_HW_SPI2_NSS         (pin_I0)
-//#define MICROPY_HW_SPI2_SCK         (pin_I1)
-//#define MICROPY_HW_SPI2_MISO        (pin_B14)
-//#define MICROPY_HW_SPI2_MOSI        (pin_B15)
+#define MICROPY_HW_SPI2_NSS         (pin_I0)
+#define MICROPY_HW_SPI2_SCK         (pin_I1)
+#define MICROPY_HW_SPI2_MISO        (pin_C2)
+#define MICROPY_HW_SPI2_MOSI        (pin_C3)
 
 // USRSW is pulled low. Pressing the button makes the input go high.
 #define MICROPY_HW_USRSW_PIN        (pin_A0)
@@ -123,22 +131,22 @@ void PORTENTA_board_osc_enable(int enable);
 #define MICROPY_HW_LED_OFF(pin)     (mp_hal_pin_high(pin))
 
 // WiFi SDMMC
-#define MICROPY_HW_WIFI_SDMMC       (1)
-#define MICROPY_HW_SDMMC1_CK        (pin_C12)
-#define MICROPY_HW_SDMMC1_CMD       (pin_D2)
-#define MICROPY_HW_SDMMC1_D0        (pin_C8)
-#define MICROPY_HW_SDMMC1_D1        (pin_C9)
-#define MICROPY_HW_SDMMC1_D2        (pin_C10)
-#define MICROPY_HW_SDMMC1_D3        (pin_C11)
+#define MICROPY_HW_SDIO_SDMMC       (1)
+#define MICROPY_HW_SDIO_CK          (pin_C12)
+#define MICROPY_HW_SDIO_CMD         (pin_D2)
+#define MICROPY_HW_SDIO_D0          (pin_C8)
+#define MICROPY_HW_SDIO_D1          (pin_C9)
+#define MICROPY_HW_SDIO_D2          (pin_C10)
+#define MICROPY_HW_SDIO_D3          (pin_C11)
 
 // SD Card SDMMC
 #define MICROPY_HW_SDCARD_SDMMC     (2)
-#define MICROPY_HW_SDMMC2_CK        (pin_D6)
-#define MICROPY_HW_SDMMC2_CMD       (pin_D7)
-#define MICROPY_HW_SDMMC2_D0        (pin_B14)
-#define MICROPY_HW_SDMMC2_D1        (pin_B15)
-#define MICROPY_HW_SDMMC2_D2        (pin_B3)
-#define MICROPY_HW_SDMMC2_D3        (pin_B4)
+#define MICROPY_HW_SDCARD_CK        (pin_D6)
+#define MICROPY_HW_SDCARD_CMD       (pin_D7)
+#define MICROPY_HW_SDCARD_D0        (pin_B14)
+#define MICROPY_HW_SDCARD_D1        (pin_B15)
+#define MICROPY_HW_SDCARD_D2        (pin_B3)
+#define MICROPY_HW_SDCARD_D3        (pin_B4)
 
 // USB config
 #define MICROPY_HW_USB_HS           (1)
@@ -149,6 +157,11 @@ void PORTENTA_board_osc_enable(int enable);
 #define USBD_CDC_RX_DATA_SIZE       (512)
 #define USBD_CDC_TX_DATA_SIZE       (512)
 #define GPIO_AF10_OTG_HS            (GPIO_AF10_OTG2_HS)
+
+// Bluetooth config
+#define MICROPY_HW_BLE_UART_ID       (PYB_UART_7)
+#define MICROPY_HW_BLE_UART_BAUDRATE (115200)
+#define MICROPY_HW_BLE_UART_BAUDRATE_SECONDARY (3000000)
 
 // SDRAM
 #define MICROPY_HW_SDRAM_SIZE               (64 / 8 * 1024 * 1024)  // 64 Mbit

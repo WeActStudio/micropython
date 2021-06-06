@@ -30,7 +30,6 @@
 
 #define PYB_USB_FLAG_USB_MODE_CALLED    (0x0002)
 
-// Windows needs a different PID to distinguish different device configurations
 #ifndef USBD_VID
 #define USBD_VID                (0xf055)
 #endif
@@ -94,6 +93,7 @@ int usb_vcp_recv_byte(uint8_t *c); // if a byte is available, return 1 and put t
 void usb_vcp_send_strn(const char* str, int len);
 uint32_t usb_cdc_buf_len();
 uint32_t usb_cdc_get_buf(uint8_t *buf, uint32_t len);
+int usb_cdc_debug_mode_enabled();
 void usb_vcp_attach_to_repl(const pyb_usb_vcp_obj_t *self, bool attached);
 
 void pyb_usb_host_init(void);
