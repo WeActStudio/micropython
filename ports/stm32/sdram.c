@@ -286,14 +286,23 @@ void sdram_powerdown()
     HAL_SDRAM_SendCommand(&hsdram, &command, 0xFFFF);
 }
 
-bool __attribute__((optimize("O0"))) sdram_test(bool exhaustive)
-{
-    char error_buffer[1024];
+#if __GNUC__ >= 11
+// Prevent array bounds warnings when accessing SDRAM_START_ADDRESS as a memory pointer.
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Warray-bounds"
+#pragma GCC diagnostic ignored "-Wstringop-overflow"
+#endif
+
+bool __attribute__((optimize("O0"))) sdram_test(bool exhaustive) {
     uint8_t const pattern = 0xaa;
     uint8_t const antipattern = 0x55;
     uint8_t *const mem_base = (uint8_t *)sdram_start();
 
-    #if defined(MCU_SERIES_F7) || defined(MCU_SERIES_H7)
+    #if MICROPY_HW_SDRAM_TEST_FAIL_ON_ERROR
+    char error_buffer[1024];
+    #endif
+
+    #if (__DCACHE_PRESENT == 1)
     bool i_cache_disabled = false;
     bool d_cache_disabled = false;
 
@@ -310,35 +319,44 @@ bool __attribute__((optimize("O0"))) sdram_test(bool exhaustive)
     #endif
 
     // Test data bus
-    for (uint32_t i=0; i<MICROPY_HW_SDRAM_MEM_BUS_WIDTH; i++) {
-        *((uint32_t*)mem_base) = (1<<i);
-        if (*((uint32_t*)mem_base) != (1<<i)) {
+    for (uint32_t i = 0; i < MICROPY_HW_SDRAM_MEM_BUS_WIDTH; i++) {
+        *((uint32_t *)mem_base) = (1 << i);
+        if (*((uint32_t *)mem_base) != (1 << i)) {
+            #if MICROPY_HW_SDRAM_TEST_FAIL_ON_ERROR
             snprintf(error_buffer, sizeof(error_buffer),
-                    "Data bus test failed at 0x%p expected 0x%x found 0x%lx",
-                    &mem_base[0], (1<<i), ((uint32_t*)mem_base)[0]);
+                "Data bus test failed at 0x%p expected 0x%x found 0x%lx",
+                &mem_base[0], (1 << i), ((uint32_t *)mem_base)[0]);
             __fatal_error(error_buffer);
+            #endif
+            return false;
         }
     }
 
     // Test address bus
-    for (uint32_t i=1; i<MICROPY_HW_SDRAM_SIZE; i<<=1) {
+    for (uint32_t i = 1; i < MICROPY_HW_SDRAM_SIZE; i <<= 1) {
         mem_base[i] = pattern;
         if (mem_base[i] != pattern) {
+            #if MICROPY_HW_SDRAM_TEST_FAIL_ON_ERROR
             snprintf(error_buffer, sizeof(error_buffer),
-                    "Address bus test failed at 0x%p expected 0x%x found 0x%x",
-                    &mem_base[i], pattern, mem_base[i]);
+                "Address bus test failed at 0x%p expected 0x%x found 0x%x",
+                &mem_base[i], pattern, mem_base[i]);
             __fatal_error(error_buffer);
+            #endif
+            return false;
         }
     }
 
     // Check for aliasing (overlaping addresses)
     mem_base[0] = antipattern;
-    for (uint32_t i=1; i<MICROPY_HW_SDRAM_SIZE; i<<=1) {
+    for (uint32_t i = 1; i < MICROPY_HW_SDRAM_SIZE; i <<= 1) {
         if (mem_base[i] != pattern) {
+            #if MICROPY_HW_SDRAM_TEST_FAIL_ON_ERROR
             snprintf(error_buffer, sizeof(error_buffer),
-                    "Address bus overlap at 0x%p expected 0x%x found 0x%x",
-                    &mem_base[i], pattern, mem_base[i]);
+                "Address bus overlap at 0x%p expected 0x%x found 0x%x",
+                &mem_base[i], pattern, mem_base[i]);
             __fatal_error(error_buffer);
+            #endif
+            return false;
         }
     }
 
@@ -347,23 +365,25 @@ bool __attribute__((optimize("O0"))) sdram_test(bool exhaustive)
         // Write all memory first then compare, so even if the cache
         // is enabled, it's not just writing and reading from cache.
         // Note: This test should also detect refresh rate issues.
-        for (uint32_t i=0; i<MICROPY_HW_SDRAM_SIZE; i++) {
+        for (uint32_t i = 0; i < MICROPY_HW_SDRAM_SIZE; i++) {
             mem_base[i] = pattern;
         }
 
-        for (uint32_t i=0; i<MICROPY_HW_SDRAM_SIZE; i++) {
+        for (uint32_t i = 0; i < MICROPY_HW_SDRAM_SIZE; i++) {
             if (mem_base[i] != pattern) {
+                #if MICROPY_HW_SDRAM_TEST_FAIL_ON_ERROR
                 snprintf(error_buffer, sizeof(error_buffer),
-                        "Address bus slow test failed at 0x%p expected 0x%x found 0x%x",
-                        &mem_base[i], pattern, mem_base[i]);
+                    "Address bus slow test failed at 0x%p expected 0x%x found 0x%x",
+                    &mem_base[i], pattern, mem_base[i]);
                 __fatal_error(error_buffer);
+                #endif
+                return false;
             }
         }
     }
 
-    #if defined(MCU_SERIES_F7) || defined(MCU_SERIES_H7)
-    // Enable caches back only if the caches
-    // were enabled before running the test.
+    #if (__DCACHE_PRESENT == 1)
+    // Re-enable caches if they were enabled before the test started.
     if (i_cache_disabled) {
         SCB_EnableICache();
     }
@@ -372,7 +392,12 @@ bool __attribute__((optimize("O0"))) sdram_test(bool exhaustive)
         SCB_EnableDCache();
     }
     #endif
+
     return true;
 }
+
+#if __GNUC__ >= 11
+#pragma GCC diagnostic pop
+#endif
 
 #endif // FMC_SDRAM_BANK

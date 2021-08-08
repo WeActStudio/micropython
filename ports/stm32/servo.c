@@ -139,6 +139,10 @@ STATIC void servo_init_channel(pyb_servo_obj_t *s) {
     HAL_TIM_PWM_ConfigChannel(&TIM4_Handle, &oc_init, channel);
 
     // start PWM
+    #if defined(STM32H7)
+    // Reset channel state to ready before calling HAL_PWM/IC/OC_Start_IT()
+    HAL_TIM_PWM_Stop(&TIM4_Handle, channel);
+    #endif
     HAL_TIM_PWM_Start(&TIM4_Handle, channel);
 }
 

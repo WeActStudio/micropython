@@ -30,8 +30,10 @@
 #include "hardware/spi.h"
 #include "hardware/sync.h"
 #include "pico/binary_info.h"
-
 #include "mpconfigboard.h"
+#if MICROPY_HW_USB_MSC
+#include "hardware/flash.h"
+#endif
 
 // Board and hardware specific configuration
 #define MICROPY_HW_MCU_NAME                     "RP2040"
@@ -106,7 +108,7 @@
 #define MICROPY_PY_SYS_STDIO_BUFFER             (1)
 #define MICROPY_PY_SYS_PLATFORM                 "rp2"
 #define MICROPY_PY_UERRNO                       (1)
-#define MICROPY_PY_THREAD                       (1)
+#define MICROPY_PY_THREAD                       (0)
 #define MICROPY_PY_THREAD_GIL                   (0)
 
 // Extended modules
@@ -140,13 +142,26 @@
 #define MICROPY_VFS_FAT                         (1)
 
 // fatfs configuration
-#define MICROPY_FATFS_ENABLE_LFN                (1)
+#define MICROPY_FATFS_ENABLE_LFN                (2)
 #define MICROPY_FATFS_LFN_CODE_PAGE             437 /* 1=SFN/ANSI 437=LFN/U.S.(OEM) */
 #define MICROPY_FATFS_RPATH                     (2)
+#if MICROPY_HW_USB_MSC
+#define MICROPY_FATFS_USE_LABEL                 (1)
+#define MICROPY_FATFS_MULTI_PARTITION           (1)
+// Set FatFS block size to flash sector size to avoid caching
+// the flash sector in memory to support smaller block sizes.
+#define MICROPY_FATFS_MAX_SS                    (FLASH_SECTOR_SIZE)
+#endif
 
+#define MICROPY_OPT_CACHE_MAP_LOOKUP_IN_BYTECODE (0)
+#if MICROPY_VFS_FAT && MICROPY_HW_USB_MSC
+#define mp_type_fileio mp_type_vfs_fat_fileio
+#define mp_type_textio mp_type_vfs_fat_textio
+#elif MICROPY_VFS_LFS2
 // Use VfsLfs2's types for fileio/textio
 #define mp_type_fileio mp_type_vfs_lfs2_fileio
 #define mp_type_textio mp_type_vfs_lfs2_textio
+#endif
 
 // Use VFS's functions for import stat and builtin open
 #define mp_import_stat mp_vfs_import_stat
@@ -162,13 +177,87 @@ extern const struct _mp_obj_module_t mp_module_onewire;
 extern const struct _mp_obj_module_t mp_module_rp2;
 extern const struct _mp_obj_module_t mp_module_uos;
 extern const struct _mp_obj_module_t mp_module_utime;
+extern const struct _mp_obj_module_t mp_module_usocket;
+extern const struct _mp_obj_module_t mp_module_network;
+
+// OpenMV external modules.
+extern const struct _mp_obj_module_t fir_module;
+extern const struct _mp_obj_module_t image_module;
+#if MICROPY_PY_ULAB
+extern const struct _mp_obj_module_t ulab_user_cmodule;
+#define ULAB_BUILTIN_MODULE             {  MP_OBJ_NEW_QSTR(MP_QSTR_ulab), (mp_obj_t)&ulab_user_cmodule },
+#else
+#define ULAB_BUILTIN_MODULE
+#endif
+#if MICROPY_PY_AUDIO
+extern const struct _mp_obj_module_t audio_module;
+#define AUDIO_BUILTIN_MODULE            {  MP_OBJ_NEW_QSTR(MP_QSTR_audio), (mp_obj_t)&audio_module },
+#else
+#define AUDIO_BUILTIN_MODULE
+#endif
+#if MICROPY_PY_LCD
+extern const struct _mp_obj_module_t lcd_module;
+#define LCD_BUILTIN_MODULE              {  MP_ROM_QSTR(MP_QSTR_lcd), MP_ROM_PTR(&lcd_module) },
+#else
+#define LCD_BUILTIN_MODULE
+#endif
+#if MICROPY_PY_TV
+extern const struct _mp_obj_module_t tv_module;
+#define TV_BUILTIN_MODULE               {  MP_ROM_QSTR(MP_QSTR_tv), MP_ROM_PTR(&tv_module) },
+#else
+#define TV_BUILTIN_MODULE
+#endif
+#if MICROPY_PY_BUZZER
+extern const struct _mp_obj_module_t buzzer_module;
+#define BUZZER_BUILTIN_MODULE           {  MP_ROM_QSTR(MP_QSTR_buzzer), MP_ROM_PTR(&buzzer_module) },
+#else
+#define BUZZER_BUILTIN_MODULE
+#endif
+#if MICROPY_PY_SENSOR
+extern const struct _mp_obj_module_t sensor_module;
+#define SENSOR_BUILTIN_MODULE           {  MP_ROM_QSTR(MP_QSTR_sensor), MP_ROM_PTR(&sensor_module) },
+#else
+#define SENSOR_BUILTIN_MODULE
+#endif
+#if MICROPY_PY_USOCKET
+#define SOCKET_BUILTIN_MODULE               { MP_ROM_QSTR(MP_QSTR_usocket), MP_ROM_PTR(&mp_module_usocket) },
+#else
+#define SOCKET_BUILTIN_MODULE
+#endif
+#if MICROPY_PY_NETWORK
+#define NETWORK_BUILTIN_MODULE              { MP_ROM_QSTR(MP_QSTR_network), MP_ROM_PTR(&mp_module_network) },
+#else
+#define NETWORK_BUILTIN_MODULE
+#endif
+#if MICROPY_PY_BLUETOOTH
+#define MICROPY_PORT_ROOT_POINTER_BLUETOOTH struct _machine_uart_obj_t *mp_bthci_uart;
+#else
+#define MICROPY_PORT_ROOT_POINTER_BLUETOOTH
+#endif
+#if MICROPY_BLUETOOTH_NIMBLE
+struct _mp_bluetooth_nimble_root_pointers_t;
+struct _mp_bluetooth_nimble_malloc_t;
+#define MICROPY_PORT_ROOT_POINTER_BLUETOOTH_NIMBLE struct _mp_bluetooth_nimble_malloc_t *bluetooth_nimble_memory; struct _mp_bluetooth_nimble_root_pointers_t *bluetooth_nimble_root_pointers;
+#else
+#define MICROPY_PORT_ROOT_POINTER_BLUETOOTH_NIMBLE
+#endif
 
 #define MICROPY_PORT_BUILTIN_MODULES \
-    { MP_OBJ_NEW_QSTR(MP_QSTR_machine), (mp_obj_t)&mp_module_machine }, \
-    { MP_OBJ_NEW_QSTR(MP_QSTR__onewire), (mp_obj_t)&mp_module_onewire }, \
-    { MP_OBJ_NEW_QSTR(MP_QSTR__rp2), (mp_obj_t)&mp_module_rp2 }, \
-    { MP_ROM_QSTR(MP_QSTR_uos), MP_ROM_PTR(&mp_module_uos) }, \
-    { MP_ROM_QSTR(MP_QSTR_utime), MP_ROM_PTR(&mp_module_utime) }, \
+    { MP_OBJ_NEW_QSTR(MP_QSTR_machine),     (mp_obj_t)&mp_module_machine }, \
+    { MP_OBJ_NEW_QSTR(MP_QSTR__onewire),    (mp_obj_t)&mp_module_onewire }, \
+    { MP_OBJ_NEW_QSTR(MP_QSTR__rp2),        (mp_obj_t)&mp_module_rp2 }, \
+    { MP_ROM_QSTR(MP_QSTR_uos),             MP_ROM_PTR(&mp_module_uos) }, \
+    { MP_ROM_QSTR(MP_QSTR_utime),           MP_ROM_PTR(&mp_module_utime) }, \
+    { MP_ROM_QSTR(MP_QSTR_fir),             MP_ROM_PTR(&fir_module) }, \
+    { MP_ROM_QSTR(MP_QSTR_image),           MP_ROM_PTR(&image_module) }, \
+    SOCKET_BUILTIN_MODULE \
+    NETWORK_BUILTIN_MODULE \
+    ULAB_BUILTIN_MODULE \
+    AUDIO_BUILTIN_MODULE \
+    LCD_BUILTIN_MODULE \
+    TV_BUILTIN_MODULE \
+    BUZZER_BUILTIN_MODULE \
+    SENSOR_BUILTIN_MODULE \
 
 #define MICROPY_PORT_ROOT_POINTERS \
     const char *readline_hist[8]; \
@@ -177,6 +266,9 @@ extern const struct _mp_obj_module_t mp_module_utime;
     void *rp2_state_machine_irq_obj[8]; \
     void *rp2_uart_rx_buffer[2]; \
     void *rp2_uart_tx_buffer[2]; \
+    mp_obj_list_t mod_network_nic_list; \
+    MICROPY_PORT_ROOT_POINTER_BLUETOOTH \
+    MICROPY_PORT_ROOT_POINTER_BLUETOOTH_NIMBLE \
 
 #define MP_STATE_PORT MP_STATE_VM
 

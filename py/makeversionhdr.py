@@ -59,12 +59,13 @@ def get_version_info_from_docs_conf():
 
 def make_version_header(filename):
     # Get version info using git, with fallback to docs/conf.py
-    info = get_version_info_from_git(".")
+    omv_repo = "../../../" if os.path.exists("../../../micropython") else "../../"
+    info = get_version_info_from_git(os.path.join(omv_repo, "micropython"))
     if info is None:
         info = get_version_info_from_docs_conf()
 
     mp_git_tag, mp_git_hash = info
-    omv_git_tag, omv_git_hash = get_version_info_from_git("../../../")
+    omv_git_tag, omv_git_hash = get_version_info_from_git(omv_repo)
 
     build_date = datetime.date.today()
     if "SOURCE_DATE_EPOCH" in os.environ:

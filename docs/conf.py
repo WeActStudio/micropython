@@ -66,7 +66,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'MicroPython'
-copyright = '2014-2020, Damien P. George, Paul Sokolovsky, OpenMV LLC, and contributors'
+copyright = '2014-2021, Damien P. George, Paul Sokolovsky, OpenMV LLC, and contributors'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -89,10 +89,20 @@ version = release = '1.15'
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 exclude_patterns = ['build', '.venv', "esp32", "esp8266", "pyboard", "wipy",
-                    "develop/index.rst",
                     "develop/cmodules.rst",
+                    "develop/compiler.rst",
+                    "develop/extendingmicropython.rst",
+                    "develop/gettingstarted.rst",
+                    "develop/index.rst",
+                    "develop/library.rst",
+                    "develop/maps.rst",
+                    "develop/memorymgt.rst",
                     "develop/natmod.rst",
+                    "develop/optimizations.rst",
+                    "develop/porting.rst",
+                    "develop/publiccapi.rst",
                     "develop/qstr.rst",
+                    "develop/writingtests.rst",
                     "library/esp.rst",
                     "library/esp32.rst",
                     "library/lcd160cr.rst",
@@ -107,7 +117,6 @@ exclude_patterns = ['build', '.venv', "esp32", "esp8266", "pyboard", "wipy",
                     "library/pyb.Accel.rst",
                     "library/pyb.LCD.rst",
                     "library/pyb.Switch.rst",
-                    "library/ubluetooth.rst",
                     "library/wipy.rst",
                     "reference/packages.rst",
                     "unix/quickref.rst"]

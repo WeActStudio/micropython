@@ -70,7 +70,10 @@ void PORTENTA_board_early_init(void) {
     HAL_GPIO_WritePin(GPIOJ, GPIO_PIN_15, 0);
     HAL_Delay(100);
     HAL_GPIO_WritePin(GPIOJ, GPIO_PIN_15, 1);
-    eth_enter_low_power();
+
+    // Put Eth in low-power mode
+    eth_init(&eth_instance, MP_HAL_MAC_ETH0);
+    eth_low_power_mode(&eth_instance, true);
 
     // Make sure UPLI is Not in low-power mode.
     ulpi_leave_low_power();
@@ -104,17 +107,17 @@ void PORTENTA_board_low_power(int mode)
     switch (mode) {
         case 0:     // Leave stop mode.
             ulpi_leave_low_power();
-            eth_leave_low_power();
+            eth_low_power_mode(NULL, false);
             sdram_leave_low_power();
             break;
         case 1:     // Enter stop mode.
             ulpi_enter_low_power();
-            eth_enter_low_power();
+            eth_low_power_mode(NULL, true);
             sdram_enter_low_power();
             break;
         case 2:     // Enter standby mode.
             ulpi_enter_low_power();
-            eth_enter_low_power();
+            eth_low_power_mode(NULL, true);
             sdram_powerdown();
             break;
     }

@@ -30,6 +30,7 @@
 
 #define PIN_ENABLE_SENSORS_3V3     (22u)
 #define PIN_ENABLE_I2C_PULLUP      (32u)
+#define DFU_MAGIC_SERIAL_ONLY_RESET (0xb0)
 
 void NANO33_board_early_init(void)
 {
@@ -63,4 +64,11 @@ void NANO33_board_deinit(void)
 
     nrf_gpio_pin_clear(PIN_ENABLE_SENSORS_3V3);
     nrf_gpio_pin_clear(PIN_ENABLE_I2C_PULLUP);
+}
+
+void NANO33_reset_to_bootloader(void)
+{
+    __disable_irq();
+    NRF_POWER->GPREGRET = DFU_MAGIC_SERIAL_ONLY_RESET;
+    NVIC_SystemReset();
 }

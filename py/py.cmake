@@ -123,6 +123,7 @@ set(MICROPY_SOURCE_PY
     ${MICROPY_PY_DIR}/vm.c
     ${MICROPY_PY_DIR}/vstr.c
     ${MICROPY_PY_DIR}/warning.c
+    ${MICROPY_PY_DIR}/omvdummy.c
 )
 
 # Helper macro to collect include directories and compile definitions for qstr processing.

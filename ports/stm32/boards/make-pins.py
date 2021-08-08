@@ -357,7 +357,9 @@ class Pins(object):
         print("const pin_obj_t * const pin_adc{:d}[] = {{".format(adc_num))
         for channel in range(20):
             if channel == 16:
-                print("#if defined(STM32L4)")
+                print("#if defined(STM32H7) || defined(STM32L4) || defined(STM32WB)")
+            if channel == 17:
+                print("#if defined(STM32H7)")
             adc_found = False
             for named_pin in self.cpu_pins:
                 pin = named_pin.pin()
@@ -372,6 +374,8 @@ class Pins(object):
             if not adc_found:
                 print("  NULL,    // {:d}".format(channel))
             if channel == 16:
+                print("#endif")
+            if channel == 19:
                 print("#endif")
         print("};")
 

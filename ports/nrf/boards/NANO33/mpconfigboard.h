@@ -35,6 +35,9 @@ void NANO33_board_early_init(void);
 #define MICROPY_BOARD_DEINIT NANO33_board_deinit
 void NANO33_board_deinit(void);
 
+#define MICROPY_RESET_TO_BOOTLOADER NANO33_reset_to_bootloader
+void NANO33_reset_to_bootloader(void);
+
 #define MICROPY_PY_MACHINE_UART     (1)
 #define MICROPY_PY_MACHINE_HW_PWM   (1)
 #define MICROPY_PY_MACHINE_HW_SPI   (1)

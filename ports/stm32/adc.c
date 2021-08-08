@@ -1,5 +1,5 @@
 /*
- * This file is part of the Micro Python project, http://micropython.org/
+ * This file is part of the MicroPython project, http://micropython.org/
  *
  * The MIT License (MIT)
  *
@@ -209,11 +209,11 @@ STATIC bool is_adcx_channel(int channel) {
 
 STATIC void adc_wait_for_eoc_or_timeout(ADC_HandleTypeDef *adcHandle, int32_t timeout) {
     uint32_t tickstart = HAL_GetTick();
-#if defined(STM32F4) || defined(STM32F7)
+    #if defined(STM32F4) || defined(STM32F7)
     while ((adcHandle->Instance->SR & ADC_FLAG_EOC) != ADC_FLAG_EOC) {
-#elif defined(STM32H7) || defined(STM32L4)
+    #elif defined(STM32F0) || defined(STM32H7) || defined(STM32L4) || defined(STM32WB)
     while (READ_BIT(adcHandle->Instance->ISR, ADC_FLAG_EOC) != ADC_FLAG_EOC) {
-#else
+    #else
     #error Unsupported processor
         #endif
         if (((HAL_GetTick() - tickstart) > timeout)) {
@@ -222,11 +222,11 @@ STATIC void adc_wait_for_eoc_or_timeout(ADC_HandleTypeDef *adcHandle, int32_t ti
     }
 }
 
-STATIC void adcx_clock_enable(ADC_TypeDef *adcInstance) {
+STATIC void adcx_clock_enable(ADC_HandleTypeDef *adch) {
     #if defined(STM32F0) || defined(STM32F4) || defined(STM32F7)
     ADCx_CLK_ENABLE();
     #elif defined(STM32H7)
-    if (adcInstance == ADC3) {
+    if (adch->Instance == ADC3) {
         __HAL_RCC_ADC3_CLK_ENABLE();
     } else {
         __HAL_RCC_ADC12_CLK_ENABLE();
@@ -242,12 +242,11 @@ STATIC void adcx_clock_enable(ADC_TypeDef *adcInstance) {
     #endif
 }
 
-STATIC void adcx_init_handle(ADC_HandleTypeDef *adch, ADC_TypeDef *adcInstance, uint32_t resolution) {
-    adcx_clock_enable(adcInstance);
+STATIC void adcx_init_periph(ADC_HandleTypeDef *adch, uint32_t resolution) {
+    adcx_clock_enable(adch);
 
-    adch->Instance                   = adcInstance;
-    adch->Init.Resolution            = resolution;
-    adch->Init.ContinuousConvMode    = DISABLE;
+    adch->Init.Resolution = resolution;
+    adch->Init.ContinuousConvMode = DISABLE;
     adch->Init.DiscontinuousConvMode = DISABLE;
     #if !defined(STM32F0)
     adch->Init.NbrOfDiscConversion = 0;
@@ -305,10 +304,8 @@ STATIC void adc_init_single(pyb_obj_adc_t *adc_obj) {
         mp_hal_pin_config(pin, MP_HAL_PIN_MODE_ADC, MP_HAL_PIN_PULL_NONE, 0);
     }
 
-    ADC_TypeDef *adcInstance     = ADCx;
-    ADC_HandleTypeDef *adcHandle = &adc_obj->handle;
-
-    adcx_init_handle(adcHandle, adcInstance, ADC_RESOLUTION_12B);
+    adc_obj->handle.Instance = ADCx;
+    adcx_init_periph(&adc_obj->handle, ADC_RESOLUTION_12B);
 
     #if defined(STM32L4) && defined(ADC_DUALMODE_REGSIMULT_INJECSIMULT)
     ADC_MultiModeTypeDef multimode;
@@ -397,7 +394,7 @@ STATIC uint32_t adc_config_and_read_channel(ADC_HandleTypeDef *adcHandle, uint32
 }
 
 /******************************************************************************/
-/* Micro Python bindings : adc object (single channel)                        */
+/* MicroPython bindings : adc object (single channel)                         */
 
 STATIC void adc_print(const mp_print_t *print, mp_obj_t self_in, mp_print_kind_t kind) {
     pyb_obj_adc_t *self = MP_OBJ_TO_PTR(self_in);
@@ -441,7 +438,6 @@ STATIC mp_obj_t adc_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_
         }
     }
 
-    printf("using channel %ld\n", channel);
     pyb_obj_adc_t *o = m_new_obj(pyb_obj_adc_t);
     memset(o, 0, sizeof(*o));
     o->base.type = &pyb_adc_type;
@@ -738,10 +734,11 @@ void adc_init_all(pyb_adc_all_obj_t *adc_all, uint32_t resolution, uint32_t en_m
     #if defined(STM32H7)
     // H7 internal channels are connected to ADC3.
     // Use ADCALL to read internal channels and ADC to read the GPIO channel.
-    adcx_init_handle(&adc_all->handle,  ADC3, resolution);
+    adc_all->handle.Instance = ADC3;
     #else
-    adcx_init_handle(&adc_all->handle,  ADCx, resolution);
+    adc_all->handle.Instance = ADCx;
     #endif
+    adcx_init_periph(&adc_all->handle, resolution);
 }
 
 int adc_get_resolution(ADC_HandleTypeDef *adcHandle) {
@@ -761,7 +758,6 @@ int adc_get_resolution(ADC_HandleTypeDef *adcHandle) {
             return 16;
         #endif
     }
-
     return 12;
 }
 
@@ -788,16 +784,6 @@ float adc_read_core_temp_float(ADC_HandleTypeDef *adcHandle) {
 
 float adc_read_core_vbat(ADC_HandleTypeDef *adcHandle) {
     uint32_t raw_value = adc_config_and_read_ref(adcHandle, ADC_CHANNEL_VBAT);
-
-    #if defined(STM32F4) || defined(STM32F7)
-    // ST docs say that (at least on STM32F42x and STM32F43x), VBATE must
-    // be disabled when TSVREFE is enabled for TEMPSENSOR and VREFINT
-    // conversions to work.  VBATE is enabled by the above call to read
-    // the channel, and here we disable VBATE so a subsequent call for
-    // TEMPSENSOR or VREFINT works correctly.
-    ADC->CCR &= ~ADC_CCR_VBATE;
-    #endif
-
     return raw_value * VBAT_DIV * ADC_SCALE * adc_refcor;
 }
 
@@ -812,7 +798,7 @@ float adc_read_core_vref(ADC_HandleTypeDef *adcHandle) {
 #endif
 
 /******************************************************************************/
-/* Micro Python bindings : adc_all object                                     */
+/* MicroPython bindings : adc_all object                                      */
 
 STATIC mp_obj_t adc_all_make_new(const mp_obj_type_t *type, size_t n_args, size_t n_kw, const mp_obj_t *args) {
     // check number of arguments
