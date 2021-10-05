@@ -141,6 +141,7 @@ STATIC const mp_rom_map_elem_t mp_module_network_globals_table[] = {
 
     #if MICROPY_PY_WINC1500
     { MP_ROM_QSTR(MP_QSTR_WINC), MP_ROM_PTR(&mod_network_nic_type_winc) },
+    { MP_ROM_QSTR(MP_QSTR_WLAN), MP_ROM_PTR(&mod_network_nic_type_winc) },
     #endif
     { MP_ROM_QSTR(MP_QSTR_route), MP_ROM_PTR(&network_route_obj) },
 
@@ -148,6 +149,9 @@ STATIC const mp_rom_map_elem_t mp_module_network_globals_table[] = {
     #if MICROPY_PY_NETWORK_CYW43
     { MP_ROM_QSTR(MP_QSTR_STA_IF), MP_ROM_INT(CYW43_ITF_STA)},
     { MP_ROM_QSTR(MP_QSTR_AP_IF), MP_ROM_INT(CYW43_ITF_AP)},
+    #else
+    { MP_ROM_QSTR(MP_QSTR_STA_IF), MP_ROM_INT(MOD_NETWORK_STA_IF)},
+    { MP_ROM_QSTR(MP_QSTR_AP_IF), MP_ROM_INT(MOD_NETWORK_AP_IF)},
     #endif
 };
 

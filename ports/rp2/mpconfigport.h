@@ -180,45 +180,6 @@ extern const struct _mp_obj_module_t mp_module_utime;
 extern const struct _mp_obj_module_t mp_module_usocket;
 extern const struct _mp_obj_module_t mp_module_network;
 
-// OpenMV external modules.
-extern const struct _mp_obj_module_t fir_module;
-extern const struct _mp_obj_module_t image_module;
-#if MICROPY_PY_ULAB
-extern const struct _mp_obj_module_t ulab_user_cmodule;
-#define ULAB_BUILTIN_MODULE             {  MP_OBJ_NEW_QSTR(MP_QSTR_ulab), (mp_obj_t)&ulab_user_cmodule },
-#else
-#define ULAB_BUILTIN_MODULE
-#endif
-#if MICROPY_PY_AUDIO
-extern const struct _mp_obj_module_t audio_module;
-#define AUDIO_BUILTIN_MODULE            {  MP_OBJ_NEW_QSTR(MP_QSTR_audio), (mp_obj_t)&audio_module },
-#else
-#define AUDIO_BUILTIN_MODULE
-#endif
-#if MICROPY_PY_LCD
-extern const struct _mp_obj_module_t lcd_module;
-#define LCD_BUILTIN_MODULE              {  MP_ROM_QSTR(MP_QSTR_lcd), MP_ROM_PTR(&lcd_module) },
-#else
-#define LCD_BUILTIN_MODULE
-#endif
-#if MICROPY_PY_TV
-extern const struct _mp_obj_module_t tv_module;
-#define TV_BUILTIN_MODULE               {  MP_ROM_QSTR(MP_QSTR_tv), MP_ROM_PTR(&tv_module) },
-#else
-#define TV_BUILTIN_MODULE
-#endif
-#if MICROPY_PY_BUZZER
-extern const struct _mp_obj_module_t buzzer_module;
-#define BUZZER_BUILTIN_MODULE           {  MP_ROM_QSTR(MP_QSTR_buzzer), MP_ROM_PTR(&buzzer_module) },
-#else
-#define BUZZER_BUILTIN_MODULE
-#endif
-#if MICROPY_PY_SENSOR
-extern const struct _mp_obj_module_t sensor_module;
-#define SENSOR_BUILTIN_MODULE           {  MP_ROM_QSTR(MP_QSTR_sensor), MP_ROM_PTR(&sensor_module) },
-#else
-#define SENSOR_BUILTIN_MODULE
-#endif
 #if MICROPY_PY_USOCKET
 #define SOCKET_BUILTIN_MODULE               { MP_ROM_QSTR(MP_QSTR_usocket), MP_ROM_PTR(&mp_module_usocket) },
 #else
@@ -241,6 +202,11 @@ struct _mp_bluetooth_nimble_malloc_t;
 #else
 #define MICROPY_PORT_ROOT_POINTER_BLUETOOTH_NIMBLE
 #endif
+#if MICROPY_PY_AUDIO
+#define MICROPY_PORT_ROOT_POINTER_AUDIO struct _audio_data_t *audio_data;
+#else
+#define MICROPY_PORT_ROOT_POINTER_AUDIO
+#endif
 
 #define MICROPY_PORT_BUILTIN_MODULES \
     { MP_OBJ_NEW_QSTR(MP_QSTR_machine),     (mp_obj_t)&mp_module_machine }, \
@@ -248,16 +214,8 @@ struct _mp_bluetooth_nimble_malloc_t;
     { MP_OBJ_NEW_QSTR(MP_QSTR__rp2),        (mp_obj_t)&mp_module_rp2 }, \
     { MP_ROM_QSTR(MP_QSTR_uos),             MP_ROM_PTR(&mp_module_uos) }, \
     { MP_ROM_QSTR(MP_QSTR_utime),           MP_ROM_PTR(&mp_module_utime) }, \
-    { MP_ROM_QSTR(MP_QSTR_fir),             MP_ROM_PTR(&fir_module) }, \
-    { MP_ROM_QSTR(MP_QSTR_image),           MP_ROM_PTR(&image_module) }, \
     SOCKET_BUILTIN_MODULE \
     NETWORK_BUILTIN_MODULE \
-    ULAB_BUILTIN_MODULE \
-    AUDIO_BUILTIN_MODULE \
-    LCD_BUILTIN_MODULE \
-    TV_BUILTIN_MODULE \
-    BUZZER_BUILTIN_MODULE \
-    SENSOR_BUILTIN_MODULE \
 
 #define MICROPY_PORT_ROOT_POINTERS \
     const char *readline_hist[8]; \
@@ -267,6 +225,7 @@ struct _mp_bluetooth_nimble_malloc_t;
     void *rp2_uart_rx_buffer[2]; \
     void *rp2_uart_tx_buffer[2]; \
     mp_obj_list_t mod_network_nic_list; \
+    MICROPY_PORT_ROOT_POINTER_AUDIO \
     MICROPY_PORT_ROOT_POINTER_BLUETOOTH \
     MICROPY_PORT_ROOT_POINTER_BLUETOOTH_NIMBLE \
 

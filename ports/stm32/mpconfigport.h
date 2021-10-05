@@ -250,9 +250,9 @@
     { MP_ROM_QSTR(MP_QSTR_open), MP_ROM_PTR(&mp_builtin_open_obj) },
 
 // extra built in modules to add to the list of known ones
+extern const struct _mp_obj_module_t machine_module;
 extern const struct _mp_obj_module_t pyb_module;
 extern const struct _mp_obj_module_t stm_module;
-extern const struct _mp_obj_module_t machine_module;
 extern const struct _mp_obj_module_t mp_module_ubinascii;
 extern const struct _mp_obj_module_t mp_module_ure;
 extern const struct _mp_obj_module_t mp_module_uzlib;
@@ -264,38 +264,6 @@ extern const struct _mp_obj_module_t mp_module_utime;
 extern const struct _mp_obj_module_t mp_module_usocket;
 extern const struct _mp_obj_module_t mp_module_network;
 extern const struct _mp_obj_module_t mp_module_onewire;
-extern const struct _mp_obj_module_t omv_module;
-#if MICROPY_PY_SENSOR
-extern const struct _mp_obj_module_t sensor_module;
-#endif
-extern const struct _mp_obj_module_t image_module;
-#if MICROPY_PY_LCD
-extern const struct _mp_obj_module_t lcd_module;
-#endif
-extern const struct _mp_obj_module_t fir_module;
-extern const struct _mp_obj_module_t gif_module;
-extern const struct _mp_obj_module_t mjpeg_module;
-extern const struct _mp_obj_module_t cpufreq_module;
-extern const struct _mp_obj_module_t tf_module;
-#if MICROPY_PY_TV
-extern const struct _mp_obj_module_t tv_module;
-#endif
-#if MICROPY_PY_BUZZER
-extern const struct _mp_obj_module_t buzzer_module;
-#endif
-extern const struct _mp_obj_module_t nn_st_module;
-#if MICROPY_PY_ULAB
-extern const struct _mp_obj_module_t ulab_user_cmodule;
-#endif
-#if MICROPY_PY_IMU
-extern const struct _mp_obj_module_t imu_module;
-#endif
-#if MICROPY_PY_AUDIO
-extern const struct _mp_obj_module_t audio_module;
-#endif
-#if MICROPY_PY_MICRO_SPEECH
-extern const struct _mp_obj_module_t micro_speech_module;
-#endif
 
 #if MICROPY_PY_PYB
 #define PYB_BUILTIN_MODULE                  { MP_ROM_QSTR(MP_QSTR_pyb), MP_ROM_PTR(&pyb_module) },
@@ -307,24 +275,6 @@ extern const struct _mp_obj_module_t micro_speech_module;
 #define STM_BUILTIN_MODULE                  { MP_ROM_QSTR(MP_QSTR_stm), MP_ROM_PTR(&stm_module) },
 #else
 #define STM_BUILTIN_MODULE
-#endif
-
-#if CUBEAI
-#define CUBEAI_BUILTIN_MODULE            { MP_OBJ_NEW_QSTR(MP_QSTR_nn_st),   (mp_obj_t)&nn_st_module },
-#else
-#define CUBEAI_BUILTIN_MODULE
-#endif
-
-#if MICROPY_PY_ULAB
-#define ULAB_BUILTIN_MODULE              {  MP_OBJ_NEW_QSTR(MP_QSTR_ulab),   (mp_obj_t)&ulab_user_cmodule },
-#else
-#define ULAB_BUILTIN_MODULE
-#endif
-
-#if MICROPY_PY_IMU
-#define IMU_BUILTIN_MODULE              {  MP_OBJ_NEW_QSTR(MP_QSTR_imu),   (mp_obj_t)&imu_module },
-#else
-#define IMU_BUILTIN_MODULE
 #endif
 
 #if MICROPY_PY_MACHINE
@@ -372,42 +322,6 @@ extern const struct _mp_obj_module_t micro_speech_module;
 #define NETWORK_BUILTIN_MODULE
 #endif
 
-#if MICROPY_PY_AUDIO
-#define AUDIO_BUILTIN_MODULE            {  MP_OBJ_NEW_QSTR(MP_QSTR_audio), (mp_obj_t)&audio_module },
-#else
-#define AUDIO_BUILTIN_MODULE
-#endif
-
-#if MICROPY_PY_MICRO_SPEECH
-#define MICRO_SPEECH_BUILTIN_MODULE     {  MP_OBJ_NEW_QSTR(MP_QSTR_micro_speech), (mp_obj_t)&micro_speech_module },
-#else
-#define MICRO_SPEECH_BUILTIN_MODULE
-#endif
-
-#if MICROPY_PY_SENSOR
-#define SENSOR_BUILTIN_MODULE           {  MP_OBJ_NEW_QSTR(MP_QSTR_sensor), (mp_obj_t)&sensor_module },
-#else
-#define SENSOR_BUILTIN_MODULE
-#endif
-
-#if MICROPY_PY_LCD
-#define LCD_BUILTIN_MODULE              {  MP_ROM_QSTR(MP_QSTR_lcd), MP_ROM_PTR(&lcd_module) },
-#else
-#define LCD_BUILTIN_MODULE
-#endif
-
-#if MICROPY_PY_TV
-#define TV_BUILTIN_MODULE               {  MP_ROM_QSTR(MP_QSTR_tv), MP_ROM_PTR(&tv_module) },
-#else
-#define TV_BUILTIN_MODULE
-#endif
-
-#if MICROPY_PY_BUZZER
-#define BUZZER_BUILTIN_MODULE           {  MP_ROM_QSTR(MP_QSTR_buzzer), MP_ROM_PTR(&buzzer_module) },
-#else
-#define BUZZER_BUILTIN_MODULE
-#endif
-
 #if MICROPY_PY_ONEWIRE
 #define ONEWIRE_BUILTIN_MODULE              { MP_ROM_QSTR(MP_QSTR__onewire), MP_ROM_PTR(&mp_module_onewire) },
 #else
@@ -423,22 +337,6 @@ extern const struct _mp_obj_module_t micro_speech_module;
     SOCKET_BUILTIN_MODULE \
     NETWORK_BUILTIN_MODULE \
     ONEWIRE_BUILTIN_MODULE \
-    SENSOR_BUILTIN_MODULE \
-    LCD_BUILTIN_MODULE \
-    TV_BUILTIN_MODULE \
-    BUZZER_BUILTIN_MODULE \
-    CUBEAI_BUILTIN_MODULE \
-    ULAB_BUILTIN_MODULE \
-    IMU_BUILTIN_MODULE \
-    AUDIO_BUILTIN_MODULE \
-    MICRO_SPEECH_BUILTIN_MODULE \
-    { MP_OBJ_NEW_QSTR(MP_QSTR_omv),     (mp_obj_t)&omv_module }, \
-    { MP_OBJ_NEW_QSTR(MP_QSTR_image),   (mp_obj_t)&image_module }, \
-    { MP_OBJ_NEW_QSTR(MP_QSTR_fir),     (mp_obj_t)&fir_module }, \
-    { MP_OBJ_NEW_QSTR(MP_QSTR_gif),     (mp_obj_t)&gif_module }, \
-    { MP_OBJ_NEW_QSTR(MP_QSTR_mjpeg),   (mp_obj_t)&mjpeg_module }, \
-    { MP_OBJ_NEW_QSTR(MP_QSTR_cpufreq), (mp_obj_t)&cpufreq_module }, \
-    { MP_OBJ_NEW_QSTR(MP_QSTR_tf),      (mp_obj_t)&tf_module }, \
 
 // extra constants
 #define MICROPY_PORT_CONSTANTS \
