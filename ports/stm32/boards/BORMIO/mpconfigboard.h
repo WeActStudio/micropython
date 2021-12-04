@@ -16,8 +16,11 @@
 #define MICROPY_HW_ENABLE_SDCARD    (0)
 #define MICROPY_HW_ENABLE_MMCARD    (0)
 // Reserved DMA streams
+#define MICROPY_HW_DMA1S1_IS_RESERVED
 #define MICROPY_HW_DMA2S1_IS_RESERVED
-#define MICROPY_HW_TIM_IS_RESERVED(id) (id == 1 || id == 6)
+#define MICROPY_HW_TIM_IS_RESERVED(id) (id == 3 || id == 6)
+
+#define MICROPY_HW_CLK_USE_BYPASS   (1)
 
 #define MICROPY_BOARD_EARLY_INIT BORMIO_board_early_init
 void BORMIO_board_early_init(void);
@@ -30,16 +33,17 @@ void BORMIO_board_low_power(int mode);
 #define MICROPY_BOARD_ENTER_STOP    BORMIO_board_low_power(1);
 #define MICROPY_BOARD_ENTER_STANDBY BORMIO_board_low_power(2);
 
-// Internal 64MHz HSI
-#define MICROPY_HW_CLK_USE_HSI  (1)
-#define MICROPY_HW_CLK_PLLM     (4)
-#define MICROPY_HW_CLK_PLLN     (240)
-#define MICROPY_HW_CLK_PLLP     (2)
-#define MICROPY_HW_CLK_PLLQ     (20)
-#define MICROPY_HW_CLK_PLLR     (2)
-#define MICROPY_HW_CLK_PLLFRACN (0)
+void BORMIO_board_osc_enable(int enable);
+#define MICROPY_BOARD_OSC_ENABLE    BORMIO_board_osc_enable(1);
+#define MICROPY_BOARD_OSC_DISABLE   BORMIO_board_osc_enable(0);
 
-// Use external SPI flash for storage
+// There is an external 32kHz oscillator
+#define RTC_ASYNCH_PREDIV           (0)
+#define RTC_SYNCH_PREDIV            (0x7fff)
+#define MICROPY_HW_RTC_USE_BYPASS   (1)
+#define MICROPY_HW_RTC_USE_US       (1)
+#define MICROPY_HW_RTC_USE_CALOUT   (1)
+
 #define MICROPY_HW_ENABLE_INTERNAL_FLASH_STORAGE (0)
 #define MICROPY_HW_SPIFLASH_ENABLE_CACHE (1)
 
@@ -75,20 +79,20 @@ extern struct _spi_bdev_t spi_bdev;
 #define MICROPY_HW_UART3_RX         (pin_C11)
 
 // I2C busses
-#define MICROPY_HW_I2C1_SCL         (pin_B6)
-#define MICROPY_HW_I2C1_SDA         (pin_B7)
+#define MICROPY_HW_I2C1_SCL         (pin_B8)
+#define MICROPY_HW_I2C1_SDA         (pin_B9)
 
-#define MICROPY_HW_I2C2_SCL         (pin_B10)
-#define MICROPY_HW_I2C2_SDA         (pin_B11)
+#define MICROPY_HW_I2C2_SCL         (pin_F1)
+#define MICROPY_HW_I2C2_SDA         (pin_F0)
 
-#define MICROPY_HW_I2C3_SCL         (pin_H7)
-#define MICROPY_HW_I2C3_SDA         (pin_H8)
+#define MICROPY_HW_I2C3_SCL         (pin_A8)
+#define MICROPY_HW_I2C3_SDA         (pin_C9)
 
 // SPI buses
-#define MICROPY_HW_SPI4_NSS  (pin_E11)
-#define MICROPY_HW_SPI4_SCK  (pin_E12)
-#define MICROPY_HW_SPI4_MISO (pin_E13)
-#define MICROPY_HW_SPI4_MOSI (pin_E14)
+#define MICROPY_HW_SPI4_NSS         (pin_E11)
+#define MICROPY_HW_SPI4_SCK         (pin_E12)
+#define MICROPY_HW_SPI4_MISO        (pin_E13)
+#define MICROPY_HW_SPI4_MOSI        (pin_E14)
 
 // LEDs
 #define MICROPY_HW_LED1             (pyb_pin_LEDR) // red
@@ -99,7 +103,7 @@ extern struct _spi_bdev_t spi_bdev;
 
 // WiFi SDMMC
 #define MICROPY_HW_SDIO_SDMMC       (2)
-#define MICROPY_HW_SDIO_CK          (pin_C1)
+#define MICROPY_HW_SDIO_CK          (pin_D6)
 #define MICROPY_HW_SDIO_CMD         (pin_D7)
 #define MICROPY_HW_SDIO_D0          (pin_B14)
 #define MICROPY_HW_SDIO_D1          (pin_B15)
@@ -107,9 +111,14 @@ extern struct _spi_bdev_t spi_bdev;
 #define MICROPY_HW_SDIO_D3          (pin_B4)
 
 // USB config
-#define MICROPY_HW_USB_FS           (1)
+#define MICROPY_HW_USB_HS           (1)
+#define MICROPY_HW_USB_HS_ULPI_NXT  (pin_C3)
+#define MICROPY_HW_USB_HS_ULPI_DIR  (pin_C2)
+
+//#define MICROPY_HW_USB_FS           (1)
 #define USBD_CDC_RX_DATA_SIZE       (512)
 #define USBD_CDC_TX_DATA_SIZE       (512)
+#define GPIO_AF10_OTG_HS            (GPIO_AF10_OTG2_HS)
 
 #define USBD_MANUFACTURER_STRING      "Arduino"
 #define USBD_PRODUCT_HS_STRING        "Bormio Virtual Comm Port in HS Mode"
@@ -119,6 +128,6 @@ extern struct _spi_bdev_t spi_bdev;
 #define USBD_CONFIGURATION_FS_STRING  "Bormio Config"
 #define USBD_INTERFACE_FS_STRING      "Bormio Interface"
 #define MICROPY_PY_SYS_PLATFORM       "Bormio"
-#define USBD_PID_RNDIS_CDC_MSC        0x005B
-#define USBD_PID                      0x005B
+#define USBD_PID_RNDIS_CDC_MSC        0x045F
+#define USBD_PID                      0x045F
 #define USBD_VID                      0x2341

@@ -598,6 +598,7 @@ void DMA1_Stream0_IRQHandler(void) {
     IRQ_EXIT(DMA1_Stream0_IRQn);
 }
 #endif
+#ifndef MICROPY_HW_DMA1S1_IS_RESERVED
 void DMA1_Stream1_IRQHandler(void) {
     IRQ_ENTER(DMA1_Stream1_IRQn);
     if (dma_handle[dma_id_1] != NULL) {
@@ -605,6 +606,7 @@ void DMA1_Stream1_IRQHandler(void) {
     }
     IRQ_EXIT(DMA1_Stream1_IRQn);
 }
+#endif
 void DMA1_Stream2_IRQHandler(void) {
     IRQ_ENTER(DMA1_Stream2_IRQn);
     if (dma_handle[dma_id_2] != NULL) {
