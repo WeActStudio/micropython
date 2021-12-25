@@ -43,9 +43,7 @@
 #define MICROPY_VFS                 (0)
 #endif
 #define MICROPY_ALLOC_PATH_MAX      (512)
-#define MICROPY_PERSISTENT_CODE_LOAD (0)
-#define MICROPY_EMIT_THUMB          (0)
-#define MICROPY_EMIT_INLINE_THUMB   (0)
+#define MICROPY_PERSISTENT_CODE_LOAD (1)
 #define MICROPY_COMP_MODULE_CONST   (0)
 #define MICROPY_COMP_TRIPLE_TUPLE_ASSIGN (0)
 #define MICROPY_READER_VFS          (MICROPY_VFS)
@@ -77,7 +75,13 @@
 #define MICROPY_FATFS_LFN_CODE_PAGE    437 /* 1=SFN/ANSI 437=LFN/U.S.(OEM) */
 #define MICROPY_FATFS_USE_LABEL        (1)
 #define MICROPY_FATFS_RPATH            (2)
-#define MICROPY_FATFS_MULTI_PARTITION  (1)
+#define MICROPY_FATFS_MULTI_PARTITION  (0)
+
+#if NRF51
+    #define MICROPY_FATFS_MAX_SS       (1024)
+#else
+    #define MICROPY_FATFS_MAX_SS       (4096)
+#endif
 
 // TODO these should be generic, not bound to fatfs
 #define mp_type_fileio fatfs_type_fileio
@@ -100,7 +104,7 @@
 #define MICROPY_CAN_OVERRIDE_BUILTINS (1)
 #define MICROPY_USE_INTERNAL_ERRNO  (1)
 #define MICROPY_PY_FUNCTION_ATTRS   (1)
-#define MICROPY_PY_BUILTINS_STR_UNICODE (0)
+#define MICROPY_PY_BUILTINS_STR_UNICODE (1)
 #define MICROPY_PY_BUILTINS_STR_CENTER (0)
 #define MICROPY_PY_BUILTINS_STR_PARTITION (0)
 #define MICROPY_PY_BUILTINS_STR_SPLITLINES (0)
@@ -122,8 +126,7 @@
 #define MICROPY_PY_MATH_SPECIAL_FUNCTIONS (0)
 #define MICROPY_PY_CMATH            (0)
 #define MICROPY_PY_IO               (0)
-#define MICROPY_PY_IO_FILEIO        (0)
-#define MICROPY_PY_UERRNO           (0)
+#define MICROPY_PY_IO_FILEIO        (MICROPY_VFS_FAT || MICROPY_VFS_LFS1 || MICROPY_VFS_LFS2)
 #define MICROPY_PY_URANDOM          (1)
 #define MICROPY_PY_URANDOM_EXTRA_FUNCS (1)
 #define MICROPY_PY_UCTYPES          (0)
@@ -131,7 +134,6 @@
 #define MICROPY_PY_UJSON            (0)
 #define MICROPY_PY_URE              (0)
 #define MICROPY_PY_UHEAPQ           (0)
-#define MICROPY_PY_UHASHLIB         (0)
 #define MICROPY_PY_UTIME_MP_HAL     (1)
 #define MICROPY_PY_MACHINE          (1)
 #define MICROPY_PY_MACHINE_PULSE    (0)

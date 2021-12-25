@@ -27,7 +27,7 @@
 #include <string.h>
 #include "py/mphal.h"
 #include "py/mperrno.h"
-#include "lib/netutils/netutils.h"
+#include "shared/netutils/netutils.h"
 #include "pin_static_af.h"
 #include "modnetwork.h"
 #include "mpu.h"
@@ -221,6 +221,7 @@ STATIC int eth_mac_init(eth_t *self) {
     mpu_config_region(MPU_REGION_ETH, (uint32_t)&eth_dma, MPU_CONFIG_ETH(MPU_REGION_SIZE_16KB));
     mpu_config_end(irq_state);
 
+    // Enable peripheral clock
     #if defined(STM32H7)
     __HAL_RCC_ETH1MAC_CLK_ENABLE();
     __HAL_RCC_ETH1TX_CLK_ENABLE();
@@ -818,11 +819,10 @@ int eth_stop(eth_t *self) {
     return 0;
 }
 
-void eth_low_power_mode(eth_t *self, bool enable)
-{
-    (void) self;
+void eth_low_power_mode(eth_t *self, bool enable) {
+    (void)self;
 
-    // Make sure eth clock is enabled.
+    // Enable eth clock
     #if defined(STM32H7)
     __HAL_RCC_ETH1MAC_CLK_ENABLE();
     #else

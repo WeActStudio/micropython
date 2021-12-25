@@ -53,12 +53,6 @@
 #define CMD_SEC_ERASE_32 (0x21)
 #define CMD_C4READ_32   (0xec)
 
-// 32 bit addressing commands
-#define CMD_WRITE_32    (0x12)
-#define CMD_READ_32     (0x13)
-#define CMD_SEC_ERASE_32 (0x21)
-#define CMD_C4READ_32   (0xec)
-
 #define WAIT_SR_TIMEOUT (1000000)
 
 #define PAGE_SIZE (256) // maximum bytes we can write in one SPI transfer

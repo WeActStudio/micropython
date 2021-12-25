@@ -24,7 +24,6 @@
 ######################
 build/
 build-*/
-docs/_build/
 
 # Test failure outputs
 ######################
@@ -42,4 +41,8 @@ user.props
 
 # Generated rst files
 ######################
-#genrst/
+genrst/
+
+# MacOS desktop metadata files
+######################
+.DS_Store

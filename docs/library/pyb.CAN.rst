@@ -29,7 +29,7 @@ Constructors
   the bus, if any).  If extra arguments are given, the bus is initialised.
   See :meth:`CAN.init` for parameters of initialisation.
 
-  The physical pins of the CAN bus are:
+   The physical pins of the CAN buses are:
 
     - ``CAN(2): (RX, TX) = (PB12, PB13)``
 

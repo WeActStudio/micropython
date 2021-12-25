@@ -27,8 +27,8 @@
 #include "py/runtime.h"
 #include "py/stream.h"
 #include "py/mphal.h"
-#include "extmod/mpbthci.h"
 #include "extmod/modbluetooth.h"
+#include "extmod/mpbthci.h"
 #include "modmachine.h"
 #include "mpbthciport.h"
 #include "pico/stdlib.h"
@@ -43,21 +43,15 @@ static alarm_id_t poll_timer_id = 0;
 
 uint8_t mp_bluetooth_hci_cmd_buf[4 + 256];
 
-#if MICROPY_PY_BLUETOOTH_USE_SYNC_EVENTS
 // Prevent double-enqueuing of the scheduled task.
 STATIC volatile bool events_task_is_scheduled;
-#endif
 
 void mp_bluetooth_hci_init(void) {
-    #if MICROPY_PY_BLUETOOTH_USE_SYNC_EVENTS
     events_task_is_scheduled = false;
-    #endif
 }
 
 STATIC void mp_bluetooth_hci_start_polling(void) {
-    #if MICROPY_PY_BLUETOOTH_USE_SYNC_EVENTS
     events_task_is_scheduled = false;
-    #endif
     mp_bluetooth_hci_poll_now();
 }
 
@@ -70,8 +64,6 @@ static int64_t mp_bluetooth_hci_timer_callback(alarm_id_t id, void *user_data) {
 void mp_bluetooth_hci_poll_in_ms(uint32_t ms) {
     poll_timer_id = add_alarm_in_ms(ms, mp_bluetooth_hci_timer_callback, NULL, true);
 }
-
-#if MICROPY_PY_BLUETOOTH_USE_SYNC_EVENTS
 
 // For synchronous mode, we run all BLE stack code inside a scheduled task.
 // This task is scheduled periodically via a timer, or immediately after UART RX IRQ.
@@ -95,15 +87,6 @@ void mp_bluetooth_hci_poll_now(void) {
         }
     }
 }
-
-#else // !MICROPY_PY_BLUETOOTH_USE_SYNC_EVENTS
-#include "pendsv.h"
-
-void mp_bluetooth_hci_poll_now(void) {
-    pendsv_schedule_dispatch(PENDSV_DISPATCH_BLUETOOTH_HCI, mp_bluetooth_hci_poll);
-}
-
-#endif
 
 mp_obj_t mp_bthci_uart;
 
@@ -141,7 +124,7 @@ int mp_bluetooth_hci_uart_set_baudrate(uint32_t baudrate) {
     return 0;
 }
 
-int mp_bluetooth_hci_uart_any() {
+int mp_bluetooth_hci_uart_any(void) {
     int errcode = 0;
     const mp_stream_p_t *proto = (mp_stream_p_t *)machine_uart_type.protocol;
 
@@ -213,4 +196,5 @@ MP_WEAK int mp_bluetooth_hci_controller_wakeup(void) {
     debug_printf("mp_bluetooth_hci_controller_wakeup (default)\n");
     return 0;
 }
+
 #endif // MICROPY_PY_BLUETOOTH

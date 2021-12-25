@@ -255,12 +255,6 @@ STATIC HAL_StatusTypeDef sdmmc_init_sd(void) {
         mp_hal_delay_ms(50);
     }
 
-    // configure the SD bus width for wide operation
-    #if defined(STM32F7)
-    // use maximum SDMMC clock speed on F7 MCUs
-    sdmmc_handle.sd.Init.ClockBypass = SDIO_CLOCK_BYPASS_ENABLE;
-    #endif
-
     #if MICROPY_HW_SDCARD_BUS_WIDTH == 4
     // configure the SD bus width for 4-bit wide operation
     status = HAL_SD_ConfigWideBusOperation(&sdmmc_handle.sd, SDIO_BUS_WIDE_4B);

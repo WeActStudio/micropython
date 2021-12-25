@@ -66,9 +66,11 @@
 #define HAVE_PLL48 0
 #endif
 
+#if MICROPY_HW_ENTER_BOOTLOADER_VIA_RESET
 // Location in RAM of bootloader state (just after the top of the stack)
 extern uint32_t _estack[];
 #define BL_STATE ((uint32_t *)&_estack)
+#endif
 
 static inline void powerctrl_disable_hsi_if_unused(void) {
     #if !MICROPY_HW_CLK_USE_HSI && (defined(STM32F4) || defined(STM32F7) || defined(STM32H7))
@@ -78,32 +80,47 @@ static inline void powerctrl_disable_hsi_if_unused(void) {
 }
 
 NORETURN void powerctrl_mcu_reset(void) {
+    #if MICROPY_HW_ENTER_BOOTLOADER_VIA_RESET
     BL_STATE[1] = 1; // invalidate bootloader address
     #if __DCACHE_PRESENT == 1
     SCB_CleanDCache();
     #endif
-    NVIC_SystemReset();
-}
-
-NORETURN void powerctrl_enter_bootloader(uint32_t r0, uint32_t bl_addr) {
-    BL_STATE[0] = r0;
-    BL_STATE[1] = bl_addr;
-    #if __DCACHE_PRESENT == 1
-    SCB_CleanDCache();
     #endif
     NVIC_SystemReset();
 }
 
-static __attribute__((naked)) void branch_to_bootloader(uint32_t r0, uint32_t bl_addr) {
+NORETURN static __attribute__((naked)) void branch_to_bootloader(uint32_t r0, uint32_t bl_addr) {
     __asm volatile (
         "ldr r2, [r1, #0]\n"    // get address of stack pointer
         "msr msp, r2\n"         // get stack pointer
         "ldr r2, [r1, #4]\n"    // get address of destination
         "bx r2\n"               // branch to bootloader
         );
+    MP_UNREACHABLE;
+}
+
+NORETURN void powerctrl_enter_bootloader(uint32_t r0, uint32_t bl_addr) {
+    #if MICROPY_HW_ENTER_BOOTLOADER_VIA_RESET
+
+    // Enter the bootloader via a reset, so everything is reset (including WDT).
+    // Upon reset powerctrl_check_enter_bootloader() will jump to the bootloader.
+    BL_STATE[0] = r0;
+    BL_STATE[1] = bl_addr;
+    #if __DCACHE_PRESENT == 1
+    SCB_CleanDCache();
+    #endif
+    NVIC_SystemReset();
+
+    #else
+
+    // Enter the bootloader via a direct jump.
+    branch_to_bootloader(r0, bl_addr);
+
+    #endif
 }
 
 void powerctrl_check_enter_bootloader(void) {
+    #if MICROPY_HW_ENTER_BOOTLOADER_VIA_RESET
     uint32_t bl_addr = BL_STATE[1];
     BL_STATE[1] = 1; // invalidate bootloader address
     if ((bl_addr & 0xfff) == 0 && (RCC->RCC_SR & RCC_SR_SFTRSTF)) {
@@ -115,6 +132,7 @@ void powerctrl_check_enter_bootloader(void) {
         uint32_t r0 = BL_STATE[0];
         branch_to_bootloader(r0, bl_addr);
     }
+    #endif
 }
 
 #if !defined(STM32F0) && !defined(STM32L0) && !defined(STM32WB)
@@ -501,10 +519,103 @@ set_clk:
 
 #elif defined(STM32WB)
 
+#include "stm32wbxx_ll_utils.h"
+
+#define LPR_THRESHOLD (2000000)
+#define VOS2_THRESHOLD (16000000)
+
+enum {
+    SYSCLK_MODE_NONE,
+    SYSCLK_MODE_MSI,
+    SYSCLK_MODE_HSE_64M,
+};
+
 int powerctrl_set_sysclk(uint32_t sysclk, uint32_t ahb, uint32_t apb1, uint32_t apb2) {
-    // For now it's not supported to change SYSCLK (only bus dividers).
-    if (sysclk != HAL_RCC_GetSysClockFreq()) {
-        return -MP_EINVAL;
+    int sysclk_mode = SYSCLK_MODE_NONE;
+    uint32_t msirange = 0;
+    uint32_t sysclk_cur = HAL_RCC_GetSysClockFreq();
+
+    if (sysclk == sysclk_cur) {
+        // SYSCLK does not need changing.
+    } else if (sysclk == 64000000) {
+        sysclk_mode = SYSCLK_MODE_HSE_64M;
+    } else {
+        for (msirange = 0; msirange < MP_ARRAY_SIZE(MSIRangeTable); ++msirange) {
+            if (MSIRangeTable[msirange] != 0 && sysclk == MSIRangeTable[msirange]) {
+                sysclk_mode = SYSCLK_MODE_MSI;
+                break;
+            }
+        }
+
+        if (sysclk_mode == SYSCLK_MODE_NONE) {
+            // Unsupported SYSCLK value.
+            return -MP_EINVAL;
+        }
+    }
+
+    // Exit LPR if SYSCLK will increase beyond threshold.
+    if (LL_PWR_IsEnabledLowPowerRunMode()) {
+        if (sysclk > LPR_THRESHOLD) {
+            if (sysclk_cur < LPR_THRESHOLD) {
+                // Must select MSI=LPR_THRESHOLD=2MHz to exit LPR.
+                LL_RCC_MSI_SetRange(LL_RCC_MSIRANGE_5);
+            }
+
+            // Exit LPR and wait for the regulator to be ready.
+            LL_PWR_ExitLowPowerRunMode();
+            while (!LL_PWR_IsActiveFlag_REGLPF()) {
+            }
+        }
+    }
+
+    // Select VOS1 if SYSCLK will increase beyond threshold.
+    if (sysclk > VOS2_THRESHOLD) {
+        LL_PWR_SetRegulVoltageScaling(LL_PWR_REGU_VOLTAGE_SCALE1);
+        while (LL_PWR_IsActiveFlag_VOS()) {
+        }
+    }
+
+    if (sysclk_mode == SYSCLK_MODE_HSE_64M) {
+        SystemClock_Config();
+    } else if (sysclk_mode == SYSCLK_MODE_MSI) {
+        // Set flash latency to maximum to ensure the latency is large enough for
+        // both the current SYSCLK and the SYSCLK that will be selected below.
+        LL_FLASH_SetLatency(LL_FLASH_LATENCY_3);
+        while (LL_FLASH_GetLatency() != LL_FLASH_LATENCY_3) {
+        }
+
+        // Before changing the MSIRANGE value, if MSI is on then it must also be ready.
+        while ((RCC->CR & (RCC_CR_MSIRDY | RCC_CR_MSION)) == RCC_CR_MSION) {
+        }
+        LL_RCC_MSI_SetRange(msirange << RCC_CR_MSIRANGE_Pos);
+
+        // Clock SYSCLK from MSI.
+        LL_RCC_SetSysClkSource(LL_RCC_SYS_CLKSOURCE_MSI);
+        while (LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_MSI) {
+        }
+
+        // Disable PLL to decrease power consumption.
+        LL_RCC_PLL_Disable();
+        while (LL_RCC_PLL_IsReady() != 0) {
+        }
+        LL_RCC_PLL_DisableDomain_SYS();
+
+        // Select VOS2 if possible.
+        if (sysclk <= VOS2_THRESHOLD) {
+            LL_PWR_SetRegulVoltageScaling(LL_PWR_REGU_VOLTAGE_SCALE2);
+        }
+
+        // Enter LPR if possible.
+        if (sysclk <= LPR_THRESHOLD) {
+            LL_PWR_EnterLowPowerRunMode();
+        }
+
+        // Configure flash latency for the new SYSCLK.
+        LL_SetFlashLatency(sysclk);
+
+        // Update HAL state and SysTick.
+        SystemCoreClockUpdate();
+        powerctrl_config_systick();
     }
 
     // Return straightaway if the clocks are already at the desired frequency.

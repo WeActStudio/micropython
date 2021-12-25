@@ -29,7 +29,7 @@
 #include <stdio.h>
 
 #include "py/mphal.h"
-#include "lib/netutils/netutils.h"
+#include "shared/netutils/netutils.h"
 #include "lwip/etharp.h"
 #include "lwip/dns.h"
 #include "lwip/apps/mdns.h"
