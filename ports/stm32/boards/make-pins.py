@@ -426,23 +426,19 @@ class Pins(object):
                 adc_pins[pin.adc_channel] = pin
         if adc_pins:
             table_size = max(adc_pins) + 1
-            self.adc_table_size[adc_num] = table_size
-            print("")
-            print("const pin_obj_t * const pin_adc{:d}[{:d}] = {{".format(adc_num, table_size))
-            for channel in range(table_size):
-                if channel in adc_pins:
-                    obj = "&pin_{:s}_obj".format(adc_pins[channel].cpu_pin_name())
-                else:
-                    obj = "NULL"
-                print("  [{:d}] = {},".format(channel, obj))
-            print("};")
         else:
-            self.adc_table_size[adc_num] = 0
-            # If all adcx pins are hidden, we still need to print an empty table to avoid linker errors.
-            print("")
-            print("const pin_obj_t * const pin_adc{:d}[{:d}] = {{".format(adc_num, 0))
-            print("    /* No pins available for this table */")
-            print("}; ")
+            # If ADCx pins are all hidden, print an empty table to prevent linker errors.
+            table_size = 0
+        self.adc_table_size[adc_num] = table_size
+        print("")
+        print("const pin_obj_t * const pin_adc{:d}[{:d}] = {{".format(adc_num, table_size))
+        for channel in range(table_size):
+            if channel in adc_pins:
+                obj = "&pin_{:s}_obj".format(adc_pins[channel].cpu_pin_name())
+            else:
+                obj = "NULL"
+            print("  [{:d}] = {},".format(channel, obj))
+        print("};")
 
     def print_header(self, hdr_filename, obj_decls):
         with open(hdr_filename, "wt") as hdr_file:

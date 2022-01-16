@@ -44,10 +44,10 @@ extern int pyexec_system_exit;
 
 int pyexec_raw_repl(void);
 int pyexec_friendly_repl(void);
-int pyexec_file(const char *filename);
-int pyexec_str(vstr_t *str);
-int pyexec_file_if_exists(const char *filename);
-int pyexec_frozen_module(const char *name);
+int pyexec_str(vstr_t *str, bool raise_error);
+int pyexec_file(const char *filename, bool raise_error);
+int pyexec_file_if_exists(const char *filename, bool raise_error);
+int pyexec_frozen_module(const char *name, bool raise_error);
 void pyexec_event_repl_init(void);
 int pyexec_event_repl_process_char(int c);
 extern uint8_t pyexec_repl_active;

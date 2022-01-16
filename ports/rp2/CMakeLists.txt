@@ -79,11 +79,13 @@ set(MICROPY_SOURCE_LIB
 
 set(MICROPY_SOURCE_DRIVERS
     ${MICROPY_DIR}/drivers/bus/softspi.c
+    ${MICROPY_DIR}/drivers/dht/dht.c
 )
 
 set(MICROPY_SOURCE_PORT
     fatfs_port.c
     machine_adc.c
+    machine_bitstream.c
     machine_i2c.c
     machine_pin.c
     machine_pwm.c

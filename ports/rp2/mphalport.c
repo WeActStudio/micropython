@@ -63,10 +63,12 @@ extern void __fatal_error();
 int mp_interrupt_char = -1;
 
 void tud_cdc_rx_wanted_cb(uint8_t itf, char wanted_char) {
-    (void)itf;
-    (void)wanted_char;
-    tud_cdc_read_char(); // discard interrupt char
-    mp_sched_keyboard_interrupt();
+    if (dbg_mode_enabled == false) {
+        (void)itf;
+        (void)wanted_char;
+        tud_cdc_read_char(); // discard interrupt char
+        mp_sched_keyboard_interrupt();
+    }
 }
 
 void mp_hal_set_interrupt_char(int c) {
@@ -286,5 +288,5 @@ int mp_hal_init(void)
 uint32_t HAL_GetHalVersion()
 {
     // Hard-coded becasue it's not defined in SDK
-    return ((1<<24) | (2<<16) | (0<<8) | (0<<0));
+    return ((1<<24) | (3<<16) | (0<<8) | (0<<0));
 }

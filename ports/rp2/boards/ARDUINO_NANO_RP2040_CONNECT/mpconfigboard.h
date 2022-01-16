@@ -14,6 +14,14 @@
 #define MICROPY_HW_UART1_CTS            (10)
 #define MICROPY_HW_UART1_RTS            (11)
 
+// I2C0 config.
+#define MICROPY_HW_I2C0_SCL             (13)
+#define MICROPY_HW_I2C0_SDA             (12)
+
+// I2C1 config.
+#define MICROPY_HW_I2C1_SCL             (27)
+#define MICROPY_HW_I2C1_SDA             (26)
+
 // Bluetooth config.
 #define MICROPY_HW_NINA_RESET           (3)
 #define MICROPY_HW_NINA_GPIO1           (9)
