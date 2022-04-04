@@ -35,6 +35,9 @@
 #include "hardware/regs/intctrl.h"
 #include "pendsv.h"
 #include "usbdbg.h"
+#if MICROPY_HW_USB_CDC_1200BPS_TOUCH
+#include "pico/bootrom.h"
+#endif
 
 #if MICROPY_HW_ENABLE_UART_REPL
 
@@ -254,7 +257,12 @@ static void usb_irq_handler(void) {
 
 void tud_cdc_line_coding_cb(uint8_t itf, cdc_line_coding_t const* p_line_coding)
 {
-    if (p_line_coding->bit_rate == IDE_BAUDRATE_SLOW ||
+    if (0) {
+    #if MICROPY_HW_USB_CDC_1200BPS_TOUCH
+    } else if (p_line_coding->bit_rate == 1200) {
+        reset_usb_boot(0, 0);
+    #endif
+    } else if (p_line_coding->bit_rate == IDE_BAUDRATE_SLOW ||
             p_line_coding->bit_rate == IDE_BAUDRATE_FAST) {
         dbg_mode_enabled = true;
     } else {

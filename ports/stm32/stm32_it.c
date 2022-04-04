@@ -397,7 +397,9 @@ void OTG_FS_WKUP_IRQHandler(void) {
 
     OTG_CMD_WKUP_Handler(&pcd_fs_handle);
 
-    #if !defined(STM32H7)
+    #if defined(STM32L4)
+    EXTI->PR1 = USB_OTG_FS_WAKEUP_EXTI_LINE;
+    #elif !defined(STM32H7)
     /* Clear EXTI pending Bit*/
     __HAL_USB_FS_EXTI_CLEAR_FLAG();
     #endif
@@ -529,7 +531,11 @@ void TAMP_STAMP_IRQHandler(void) {
 
 void RTC_WKUP_IRQHandler(void) {
     IRQ_ENTER(RTC_WKUP_IRQn);
+    #if defined(STM32H7A3xx) || defined(STM32H7A3xxQ) || defined(STM32H7B3xx) || defined(STM32H7B3xxQ)
+    RTC->SR &= ~RTC_SR_WUTF; // clear wakeup interrupt flag
+    #else
     RTC->ISR &= ~RTC_ISR_WUTF; // clear wakeup interrupt flag
+    #endif
     Handle_EXTI_Irq(EXTI_RTC_WAKEUP); // clear EXTI flag and execute optional callback
     __HAL_RTC_WAKEUPTIMER_EXTI_CLEAR_FLAG(); // Clear the EXTI's line Flag for RTC WakeUpTimer
     IRQ_EXIT(RTC_WKUP_IRQn);

@@ -65,6 +65,7 @@ library.
    json.rst
    math.rst
    os.rst
+   random.rst
    re.rst
    select.rst
    socket.rst
@@ -106,6 +107,7 @@ The following libraries are specific to the OpenMV Cam.
    :maxdepth: 3
 
    pyb.rst
+   stm.rst
    omv.sensor.rst
    omv.image.rst
    omv.tf.rst

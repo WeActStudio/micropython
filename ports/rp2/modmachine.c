@@ -31,6 +31,7 @@
 #include "extmod/machine_i2c.h"
 #include "extmod/machine_mem.h"
 #include "extmod/machine_pulse.h"
+#include "extmod/machine_pwm.h"
 #include "extmod/machine_signal.h"
 #include "extmod/machine_spi.h"
 
@@ -166,6 +167,7 @@ STATIC const mp_rom_map_elem_t machine_module_globals_table[] = {
     { MP_ROM_QSTR(MP_QSTR_ADC),                 MP_ROM_PTR(&machine_adc_type) },
     { MP_ROM_QSTR(MP_QSTR_I2C),                 MP_ROM_PTR(&machine_hw_i2c_type) },
     { MP_ROM_QSTR(MP_QSTR_SoftI2C),             MP_ROM_PTR(&mp_machine_soft_i2c_type) },
+    { MP_ROM_QSTR(MP_QSTR_I2S),                 MP_ROM_PTR(&machine_i2s_type) },
     { MP_ROM_QSTR(MP_QSTR_Pin),                 MP_ROM_PTR(&machine_pin_type) },
     { MP_ROM_QSTR(MP_QSTR_PWM),                 MP_ROM_PTR(&machine_pwm_type) },
     { MP_ROM_QSTR(MP_QSTR_RTC),                 MP_ROM_PTR(&machine_rtc_type) },

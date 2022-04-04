@@ -93,3 +93,4 @@ void NANO33_reset_to_bootloader(void);
 
 #define MICROPY_HW_USB_VID              (0x2341)
 #define MICROPY_HW_USB_PID              (0x015A)
+#define MICROPY_HW_USB_CDC_1200BPS_TOUCH (1)

@@ -1,6 +1,14 @@
 #define MICROPY_HW_BOARD_NAME       "OPENMV4P"
 #define MICROPY_HW_MCU_NAME         "STM32H743"
 #define MICROPY_PY_SYS_PLATFORM     "OpenMV4P-H7"
+#define MICROPY_PY_SYS_STDIO_BUFFER (0)
+#define MICROPY_STREAMS_POSIX_API   (1)
+
+#define MICROPY_OBJ_REPR            (MICROPY_OBJ_REPR_C)
+#define UINT_FMT                    "%u"
+#define INT_FMT                     "%d"
+typedef int mp_int_t;               // must be pointer size
+typedef unsigned int mp_uint_t;     // must be pointer size
 
 #define MICROPY_FATFS_EXFAT         (1)
 #define MICROPY_HW_ENABLE_RNG       (1)
@@ -105,6 +113,17 @@ void board_low_power(int mode);
 
 // Servos
 #define PYB_SERVO_NUM (2)
+
+// Board network interfaces config.
+#if MICROPY_PY_WINC1500
+extern const struct _mod_network_nic_type_t mod_network_nic_type_winc;
+#define MICROPY_PY_USOCKET_EXTENDED_STATE   (1)
+#define MICROPY_BOARD_NETWORK_INTERFACES \
+    { MP_ROM_QSTR(MP_QSTR_WINC), MP_ROM_PTR(&mod_network_nic_type_winc) },\
+    { MP_ROM_QSTR(MP_QSTR_WLAN), MP_ROM_PTR(&mod_network_nic_type_winc) },
+#else
+#define MICROPY_BOARD_NETWORK_INTERFACES
+#endif
 
 // Use external SPI flash for storage
 #define MICROPY_HW_ENABLE_INTERNAL_FLASH_STORAGE (0)

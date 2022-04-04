@@ -702,7 +702,7 @@ int pyexec_file(const char *filename, bool raise_error) {
 
 int pyexec_file_if_exists(const char *filename, bool raise_error) {
     #if MICROPY_MODULE_FROZEN
-    if (mp_frozen_stat(filename) == MP_IMPORT_STAT_FILE) {
+    if (mp_find_frozen_module(filename, NULL, NULL) == MP_IMPORT_STAT_FILE) {
         return pyexec_frozen_module(filename, raise_error);
     }
     #endif
@@ -715,8 +715,9 @@ int pyexec_file_if_exists(const char *filename, bool raise_error) {
 #if MICROPY_MODULE_FROZEN
 int pyexec_frozen_module(const char *name, bool raise_error) {
     void *frozen_data;
-    int frozen_type = mp_find_frozen_module(name, strlen(name), &frozen_data);
+    int frozen_type;
     uint32_t flags = (raise_error) ? EXEC_FLAG_RERAISE : 0;
+    mp_find_frozen_module(name, &frozen_type, &frozen_data);
 
     switch (frozen_type) {
         #if MICROPY_MODULE_FROZEN_STR

@@ -300,7 +300,12 @@ void mp_hal_stdout_tx_strn_cooked(const char *str, mp_uint_t len) {
 
 void tud_cdc_line_coding_cb(uint8_t itf, cdc_line_coding_t const* p_line_coding)
 {
-    if (p_line_coding->bit_rate == IDE_BAUDRATE_SLOW ||
+    if (0) {
+    #if MICROPY_HW_USB_CDC_1200BPS_TOUCH
+    } else if (p_line_coding->bit_rate == 1200) {
+        MICROPY_RESET_TO_BOOTLOADER();
+    #endif
+    } else if (p_line_coding->bit_rate == IDE_BAUDRATE_SLOW ||
             p_line_coding->bit_rate == IDE_BAUDRATE_FAST) {
         dbg_mode_enabled = 1;
     } else {

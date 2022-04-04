@@ -2,6 +2,14 @@
 #define MICROPY_HW_MCU_NAME         "STM32H747"
 #define MICROPY_PY_SYS_PLATFORM     "Portenta"
 #define MICROPY_HW_FLASH_FS_LABEL	"portenta"
+#define MICROPY_PY_SYS_STDIO_BUFFER (0)
+#define MICROPY_STREAMS_POSIX_API   (1)
+
+#define MICROPY_OBJ_REPR            (MICROPY_OBJ_REPR_C)
+#define UINT_FMT                    "%u"
+#define INT_FMT                     "%d"
+typedef int mp_int_t;               // must be pointer size
+typedef unsigned int mp_uint_t;     // must be pointer size
 
 #define MICROPY_FATFS_EXFAT         (1)
 #define MICROPY_HW_ENABLE_RTC       (1)
@@ -155,9 +163,10 @@ void PORTENTA_board_osc_enable(int enable);
 #define MICROPY_HW_USB_HS_ULPI_DIR  (pin_I11)
 
 //#define MICROPY_HW_USB_FS			(1)
-#define MICROPY_HW_USB_CDC_RX_DATA_SIZE       (512)
-#define MICROPY_HW_USB_CDC_TX_DATA_SIZE       (512)
-#define GPIO_AF10_OTG_HS            (GPIO_AF10_OTG2_HS)
+#define MICROPY_HW_USB_CDC_RX_DATA_SIZE     (512)
+#define MICROPY_HW_USB_CDC_TX_DATA_SIZE     (512)
+#define MICROPY_HW_USB_CDC_1200BPS_TOUCH    (1)
+#define GPIO_AF10_OTG_HS                    (GPIO_AF10_OTG2_HS)
 
 // Bluetooth config
 #define MICROPY_HW_BLE_UART_ID       (PYB_UART_7)
@@ -251,7 +260,7 @@ void PORTENTA_board_osc_enable(int enable);
 #define MICROPY_HW_ETH_RMII_TXD1    (pin_G12)
 
 #define MICROPY_HW_USB_VID                      0x2341
-#define MICROPY_HW_USB_PID                      0x005B
+#define MICROPY_HW_USB_PID                      0x045B
 #define MICROPY_HW_USB_PID_CDC_MSC              (MICROPY_HW_USB_PID)
 #define MICROPY_HW_USB_PID_CDC_HID              (MICROPY_HW_USB_PID)
 #define MICROPY_HW_USB_PID_CDC                  (MICROPY_HW_USB_PID)

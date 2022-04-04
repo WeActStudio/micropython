@@ -427,7 +427,7 @@ class Pins(object):
         if adc_pins:
             table_size = max(adc_pins) + 1
         else:
-            # If ADCx pins are all hidden, print an empty table to prevent linker errors.
+            # If ADCx pins are hidden, print an empty table to prevent linker errors.
             table_size = 0
         self.adc_table_size[adc_num] = table_size
         print("")
