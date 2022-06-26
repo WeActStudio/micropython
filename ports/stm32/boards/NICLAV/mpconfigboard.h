@@ -2,7 +2,6 @@
 #define MICROPY_HW_MCU_NAME         "STM32H747"
 #define MICROPY_PY_SYS_PLATFORM     "Nicla Vision"
 #define MICROPY_HW_FLASH_FS_LABEL   "nicla"
-#define MICROPY_PY_SYS_STDIO_BUFFER (0)
 #define MICROPY_STREAMS_POSIX_API   (1)
 
 #define MICROPY_OBJ_REPR            (MICROPY_OBJ_REPR_C)
@@ -102,6 +101,12 @@ extern struct _spi_bdev_t spi_bdev;
 #define MICROPY_HW_SPI4_SCK         (pin_E12)
 #define MICROPY_HW_SPI4_MISO        (pin_E13)
 #define MICROPY_HW_SPI4_MOSI        (pin_E14)
+
+// FDCAN bus
+#define MICROPY_HW_CAN1_NAME        "FDCAN1"
+#define MICROPY_HW_CAN1_TX          (pin_A10)
+#define MICROPY_HW_CAN1_RX          (pin_A9)
+#define MICROPY_HW_CAN_IS_RESERVED(id) (id != PYB_CAN_1)
 
 // LEDs
 #define MICROPY_HW_LED1             (pyb_pin_LEDR) // red

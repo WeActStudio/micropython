@@ -476,9 +476,10 @@ void EXTI4_IRQHandler(void) {
 
 void EXTI9_5_IRQHandler(void) {
     IRQ_ENTER(EXTI9_5_IRQn);
+    DCMI_VsyncExtiCallback();
     Handle_EXTI_Irq(5);
     Handle_EXTI_Irq(6);
-    DCMI_VsyncExtiCallback();
+    Handle_EXTI_Irq(7);
     Handle_EXTI_Irq(8);
     Handle_EXTI_Irq(9);
     IRQ_EXIT(EXTI9_5_IRQn);

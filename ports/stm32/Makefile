@@ -713,7 +713,7 @@ GEN_CDCINF_FILE = $(HEADER_BUILD)/openmv.inf
 GEN_CDCINF_HEADER = $(HEADER_BUILD)/openmv_inf.h
 
 # List of sources for qstr extraction
-SRC_QSTR += $(SRC_C) $(SRC_CXX) $(SRC_MOD) $(LIB_SRC_C) $(EXTMOD_SRC_C) $(OMV_SRC_QSTR)
+SRC_QSTR += $(SRC_C) $(SRC_CXX) $(SRC_MOD) $(LIB_SRC_C) $(SHARED_SRC_C) $(EXTMOD_SRC_C) $(OMV_SRC_QSTR)
 # Append any auto-generated sources that are needed by sources listed in
 # SRC_QSTR
 SRC_QSTR_AUTO_DEPS += $(GEN_CDCINF_HEADER)

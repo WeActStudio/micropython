@@ -1,7 +1,6 @@
 #define MICROPY_HW_BOARD_NAME       "OPENMV2"
 #define MICROPY_HW_MCU_NAME         "STM32F427"
 #define MICROPY_PY_SYS_PLATFORM     "OpenMV2"
-#define MICROPY_PY_SYS_STDIO_BUFFER (0)
 #define MICROPY_STREAMS_POSIX_API   (1)
 
 #define MICROPY_OBJ_REPR            (MICROPY_OBJ_REPR_C)
@@ -76,8 +75,9 @@ typedef unsigned int mp_uint_t;     // must be pointer size
 
 // CAN busses
 #define MICROPY_HW_CAN2_NAME "CAN2" // CAN2 on RX,TX = P3,P2 = PB12,PB13
-#define MICROPY_HW_CAN2_TX          (pin_B13)
-#define MICROPY_HW_CAN2_RX          (pin_B12)
+#define MICROPY_HW_CAN2_TX   (pin_B13)
+#define MICROPY_HW_CAN2_RX   (pin_B12)
+#define MICROPY_HW_CAN_IS_RESERVED(id) (id != PYB_CAN_2)
 
 // SD card detect switch
 #define MICROPY_HW_SDCARD_DETECT_PIN        (pin_A15)

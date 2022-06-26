@@ -132,23 +132,12 @@ int8_t usbd_cdc_control(usbd_cdc_state_t *cdc_in, uint8_t cmd, uint8_t *pbuf, ui
 
         case CDC_SET_LINE_CODING: {
             cdc->baudrate = *((uint32_t*)pbuf);
-            if (0) {
             #if MICROPY_HW_USB_CDC_1200BPS_TOUCH
-            } else if (cdc->baudrate == 1200) {
+            if (cdc->baudrate == 1200) {
                 MICROPY_RESET_TO_BOOTLOADER();
-            #endif
-            // The slow cdc->baudrate can be used on OSs that don't support custom baudrates
-            } else if (cdc->baudrate == IDE_BAUDRATE_SLOW || cdc->baudrate == IDE_BAUDRATE_FAST) {
-                cdc->dbg_xfer_length  = 0;
-                cdc->dbg_last_packet  = 0;
-                cdc->dbg_mode_enabled = 1;
-            } else {
-                cdc->dbg_mode_enabled = 0;
             }
-            cdc->tx_buf_ptr_in = 0;
-            cdc->tx_buf_ptr_out = 0;
-            cdc->tx_buf_ptr_out_next = 0;
-            cdc->tx_need_empty_packet = 0;
+            #endif
+            usbd_cdc_reset_buffers(cdc);
             break;
         }
 
@@ -242,11 +231,9 @@ void usbd_cdc_tx_ready(usbd_cdc_state_t *cdc_in) {
     if (cdc->dbg_mode_enabled == 1) {
         if (cdc->dbg_xfer_length) {
             send_packet(cdc);
-        } else {
-            if (cdc->dbg_last_packet == CDC_DATA_FS_MAX_PACKET_SIZE) {
-                cdc->dbg_last_packet = 0;
-                USBD_CDC_TransmitPacket(&cdc->base, 0, cdc->dbg_xfer_buffer);
-            }
+        } else if (cdc->dbg_last_packet == CDC_DATA_MAX_PACKET_SIZE) {
+            cdc->dbg_last_packet = 0;
+            USBD_CDC_TransmitPacket(&cdc->base, 0, cdc->dbg_xfer_buffer);
         }
         return;
     } 
@@ -335,15 +322,31 @@ uint32_t usbd_cdc_buf_len(usbd_cdc_itf_t *cdc) {
     return usbd_cdc_tx_send_length(cdc);
 }
 
-uint32_t usbd_cdc_get_buf(usbd_cdc_itf_t *cdc, uint8_t *buf, uint32_t len)
-{
+uint32_t usbd_cdc_get_buf(usbd_cdc_itf_t *cdc, uint8_t *buf, uint32_t len) {
     cdc->tx_buf_ptr_out = cdc->tx_buf_ptr_out_next;
     memcpy(buf, usbd_cdc_tx_buffer_getp(cdc, len), len);
     return len;
 }
 
+void usbd_cdc_reset_buffers(usbd_cdc_itf_t *cdc) {
+    cdc->tx_buf_ptr_in = 0;
+    cdc->tx_buf_ptr_out = 0;
+    cdc->tx_buf_ptr_out_next = 0;
+    cdc->tx_need_empty_packet = 0;
+
+    // The slow cdc->baudrate can be used on OSes that don't support custom baudrates
+    if (cdc->baudrate == IDE_BAUDRATE_SLOW ||
+        cdc->baudrate == IDE_BAUDRATE_FAST) {
+        cdc->dbg_xfer_length  = 0;
+        cdc->dbg_last_packet  = 0;
+        cdc->dbg_mode_enabled = 1;
+    } else {
+        cdc->dbg_mode_enabled = 0;
+    }
+}
+
 static void send_packet(usbd_cdc_itf_t *cdc) {
-    int bytes = MIN(cdc->dbg_xfer_length, CDC_DATA_FS_MAX_PACKET_SIZE);
+    int bytes = MIN(cdc->dbg_xfer_length, CDC_DATA_MAX_PACKET_SIZE);
     cdc->dbg_last_packet = bytes;
     usbdbg_data_in(cdc->dbg_xfer_buffer, bytes);
     cdc->dbg_xfer_length -= bytes;

@@ -1,7 +1,6 @@
 #define MICROPY_HW_BOARD_NAME       "OPENMV4P"
 #define MICROPY_HW_MCU_NAME         "STM32H743"
 #define MICROPY_PY_SYS_PLATFORM     "OpenMV4P-H7"
-#define MICROPY_PY_SYS_STDIO_BUFFER (0)
 #define MICROPY_STREAMS_POSIX_API   (1)
 
 #define MICROPY_OBJ_REPR            (MICROPY_OBJ_REPR_C)
@@ -86,9 +85,10 @@ void board_low_power(int mode);
 #define MICROPY_HW_SPI2_MOSI (pin_B15)
 
 // FDCAN bus
-#define MICROPY_HW_CAN2_NAME  "FDCAN2"
-#define MICROPY_HW_CAN2_TX    (pin_B13)
-#define MICROPY_HW_CAN2_RX    (pin_B12)
+#define MICROPY_HW_CAN2_NAME "FDCAN2"
+#define MICROPY_HW_CAN2_TX   (pin_B13)
+#define MICROPY_HW_CAN2_RX   (pin_B12)
+#define MICROPY_HW_CAN_IS_RESERVED(id) (id != PYB_CAN_2)
 
 // SD card detect switch
 #define MICROPY_HW_SDCARD_DETECT_PIN        (pin_G7)

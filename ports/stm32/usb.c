@@ -373,6 +373,11 @@ uint32_t usb_cdc_get_buf(uint8_t *buf, uint32_t len)
     return usbd_cdc_get_buf(&usb_device.usbd_cdc_itf[0], buf, len);
 }
 
+void usb_cdc_reset_buffers()
+{
+    usbd_cdc_reset_buffers(&usb_device.usbd_cdc_itf[0]);
+}
+
 int usb_cdc_debug_mode_enabled()
 {
     return usbd_cdc_debug_mode_enabled(&usb_device.usbd_cdc_itf[0]);
