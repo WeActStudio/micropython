@@ -98,6 +98,7 @@ typedef unsigned int mp_uint_t;     // must be pointer size
 #define MICROPY_HW_CAN2_NAME  "FDCAN2"
 #define MICROPY_HW_CAN2_TX    (pin_B13)
 #define MICROPY_HW_CAN2_RX    (pin_B12)
+#define MICROPY_HW_CAN_IS_RESERVED(id) (id != PYB_CAN_2)
 
 // SD card detect switch
 #define MICROPY_HW_SDCARD_SDMMC       (1)
