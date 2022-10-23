@@ -1,7 +1,6 @@
 #define MICROPY_HW_BOARD_NAME       "WeActStudio"
 #define MICROPY_HW_MCU_NAME         "STM32H7xx"
 #define MICROPY_PY_SYS_PLATFORM     "WeActStudio-H7xx"
-#define MICROPY_PY_SYS_STDIO_BUFFER (0)
 #define MICROPY_STREAMS_POSIX_API   (1)
 
 #define MICROPY_OBJ_REPR            (MICROPY_OBJ_REPR_C)

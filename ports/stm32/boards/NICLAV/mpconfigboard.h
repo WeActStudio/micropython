@@ -16,10 +16,9 @@ typedef unsigned int mp_uint_t;     // must be pointer size
 #define MICROPY_HW_ENABLE_ADC       (1)
 #define MICROPY_HW_ENABLE_DAC       (1)
 #define MICROPY_HW_ENABLE_USB       (1)
-#define MICROPY_HW_ENABLE_SPI4      (1)
 #define MICROPY_HW_HAS_SWITCH       (0)
 #define MICROPY_HW_HAS_FLASH        (1)
-#define MICROPY_HW_ENABLE_SERVO     (1)
+#define MICROPY_HW_ENABLE_SERVO     (0)
 #define MICROPY_HW_ENABLE_TIMER     (1)
 #define MICROPY_HW_ENABLE_SDCARD    (0)
 #define MICROPY_HW_ENABLE_MMCARD    (0)
@@ -83,8 +82,14 @@ extern struct _spi_bdev_t spi_bdev;
 #define MICROPY_HW_FLASH_LATENCY    FLASH_LATENCY_2
 
 // UART config
-#define MICROPY_HW_UART3_TX         (pin_C10)
-#define MICROPY_HW_UART3_RX         (pin_C11)
+#define MICROPY_HW_UART4_TX         (pin_B9)
+#define MICROPY_HW_UART4_RX         (pin_B8)
+
+// UART1 config
+#define MICROPY_HW_UART1_TX         (pyb_pin_BT_TXD)
+#define MICROPY_HW_UART1_RX         (pyb_pin_BT_RXD)
+#define MICROPY_HW_UART1_RTS        (pyb_pin_BT_RTS)
+#define MICROPY_HW_UART1_CTS        (pyb_pin_BT_CTS)
 
 // I2C busses
 #define MICROPY_HW_I2C1_SCL         (pin_B8)
@@ -102,6 +107,11 @@ extern struct _spi_bdev_t spi_bdev;
 #define MICROPY_HW_SPI4_MISO        (pin_E13)
 #define MICROPY_HW_SPI4_MOSI        (pin_E14)
 
+#define MICROPY_HW_SPI5_NSS         (pin_F6)
+#define MICROPY_HW_SPI5_SCK         (pin_F7)
+#define MICROPY_HW_SPI5_MISO        (pin_F8)
+#define MICROPY_HW_SPI5_MOSI        (pin_F11)
+
 // FDCAN bus
 #define MICROPY_HW_CAN1_NAME        "FDCAN1"
 #define MICROPY_HW_CAN1_TX          (pin_A10)
@@ -109,9 +119,9 @@ extern struct _spi_bdev_t spi_bdev;
 #define MICROPY_HW_CAN_IS_RESERVED(id) (id != PYB_CAN_1)
 
 // LEDs
-#define MICROPY_HW_LED1             (pyb_pin_LEDR) // red
-#define MICROPY_HW_LED2             (pyb_pin_LEDG) // green
-#define MICROPY_HW_LED3             (pyb_pin_LEDB) // yellow
+#define MICROPY_HW_LED1             (pyb_pin_LED_RED) // red
+#define MICROPY_HW_LED2             (pyb_pin_LED_GREEN) // green
+#define MICROPY_HW_LED3             (pyb_pin_LED_BLUE) // yellow
 #define MICROPY_HW_LED_ON(pin)      (mp_hal_pin_low(pin))
 #define MICROPY_HW_LED_OFF(pin)     (mp_hal_pin_high(pin))
 
@@ -134,6 +144,11 @@ extern struct _spi_bdev_t spi_bdev;
 #define MICROPY_HW_USB_CDC_TX_DATA_SIZE     (512)
 #define MICROPY_HW_USB_CDC_1200BPS_TOUCH    (1)
 #define GPIO_AF10_OTG_HS                    (GPIO_AF10_OTG2_HS)
+
+// Bluetooth config
+#define MICROPY_HW_BLE_UART_ID       (PYB_UART_1)
+#define MICROPY_HW_BLE_UART_BAUDRATE (115200)
+#define MICROPY_HW_BLE_UART_BAUDRATE_SECONDARY (3000000)
 
 #define MICROPY_HW_USB_VID                      0x2341
 #define MICROPY_HW_USB_PID                      0x045F

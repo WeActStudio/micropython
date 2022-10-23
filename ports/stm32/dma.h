@@ -114,11 +114,14 @@ extern const dma_descr_t dma_I2C_4_RX;
 #error Unsupported processor
 #endif
 
-// NOTE: H7 SD DMA can only access D1 memory/devices.
 #if !defined(STM32H7)
-    #define IS_D1_ADDR(p)   (1)
+#define SD_DMA_BUFFER(sd, p)    DMA_BUFFER(p)
 #else
-    #define IS_D1_ADDR(p)   (((uint32_t) p >= 0x60000000) && ((uint32_t) p < 0xD0000000))
+// NOTE: H7 SDMMC1 DMA can only access D1 memory/devices,
+// and SDMMC2 DMA can access D1, D2 and D3 memory/devices.
+#define IS_AXI_MEM(p)        (((uint32_t) p >= 0x24000000) && ((uint32_t) p < 0x24080000))
+#define IS_D1_ADDR(p)        (((uint32_t) p >= 0x60000000) && ((uint32_t) p < 0xD0000000))
+#define SD_DMA_BUFFER(sd, p) ((sd == SDMMC1) ? (DMA_BUFFER(p) && (IS_D1_ADDR(p) || IS_AXI_MEM(p))) : DMA_BUFFER(p))
 #endif
 
 // API that configures the DMA via the HAL.
