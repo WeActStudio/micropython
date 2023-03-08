@@ -120,6 +120,7 @@ Functions
       * `sensor.LEPTON`: Lepton1/2/3 sensor module.
       * `sensor.HM01B0`: Arduino Portenta H7 sensor module.
       * `sensor.GC2145`: Arduino Nicla Vision H7 sensor module.
+      * `sensor.PAJ6100`: PixArt Imaging sensor Module.
 
 .. function:: sensor.alloc_extra_fb(width, height, pixformat)
 
@@ -167,6 +168,7 @@ Functions
       * `sensor.GRAYSCALE`: 8-bits per pixel.
       * `sensor.RGB565`: 16-bits per pixel.
       * `sensor.BAYER`: 8-bits per pixel bayer pattern.
+      * `sensor.YUV422`: 16-bits per pixel (8-bits Y1, 8-bits U, 8-bits Y2, 8-bits V, etc.)
       * `sensor.JPEG`: Compressed JPEG data. Only for the OV2640/OV5640.
 
    If you are trying to take JPEG images with the OV2640 or OV5640 camera modules at high
@@ -192,13 +194,16 @@ Functions
       * `sensor.QQVGA`: 160x120
       * `sensor.QVGA`: 320x240
       * `sensor.VGA`: 640x480
+      * `sensor.HQQQQVGA`: 30x20
       * `sensor.HQQQVGA`: 60x40
       * `sensor.HQQVGA`: 120x80
       * `sensor.HQVGA`: 240x160
+      * `sensor.HVGA`: 480x320
       * `sensor.B64X32`: 64x32 (for use with `image.find_displacement()`)
       * `sensor.B64X64`: 64x64 (for use with `image.find_displacement()`)
       * `sensor.B128X64`: 128x64 (for use with `image.find_displacement()`)
       * `sensor.B128X128`: 128x128 (for use with `image.find_displacement()`)
+      * `sensor.B160X160`: 160x160 (for the HM01B0)
       * `sensor.B320X320`: 320x320 (for the HM01B0)
       * `sensor.LCD`: 128x160 (for use with the lcd shield)
       * `sensor.QQVGA2`: 128x160 (for use with the lcd shield)
@@ -206,7 +211,9 @@ Functions
       * `sensor.WVGA2`:752x480 (for the MT9V034)
       * `sensor.SVGA`: 800x600 (only for the OV2640/OV5640 sensor)
       * `sensor.XGA`: 1024x768 (only for the OV2640/OV5640 sensor)
+      * `sensor.WXGA`: 1280x768 (for the MT9M114)
       * `sensor.SXGA`: 1280x1024 (only for the OV2640/OV5640 sensor)
+      * `sensor.SXGAM`: 1280x960 (for the MT9M114)
       * `sensor.UXGA`: 1600x1200 (only for the OV2640/OV5640 sensor)
       * `sensor.HD`: 1280x720 (only for the OV2640/OV5640 sensor)
       * `sensor.FHD`: 1920x1080 (only for the OV5640 sensor)
@@ -221,11 +228,19 @@ Functions
 
 .. function:: sensor.set_framerate(rate)
 
-   Sets the frame rate in hz on the HM01B0. May be 15, 30, 60, or 120 Hz.
+   Sets the frame rate in hz for the camera module.
+
+   .. note::
+
+      `set_framerate` works by dropping frames received by the camera module to keep the frame rate
+      equal to (or below) the rate you specify. By default the camera will run at the maximum frame
+      rate. If implemented for the particular camera sensor then `set_framerate` will also reduce
+      the camera sensor frame rate internally to save power and improve image quality by increasing
+      the sensor exposure. `set_framerate` may conflict with `set_auto_exposure` on some cameras.
 
 .. function:: sensor.get_framerate()
 
-   Returns the frame rate in hz on the HM01B0.
+   Returns the frame rate in hz for the camera module.
 
 .. function:: sensor.set_windowing(roi)
 
@@ -434,6 +449,22 @@ Functions
 
    Returns the current number of frame buffers allocated.
 
+.. function:: sensor.disable_full_flush([disable])
+
+   If ``disable`` is ``True`` then automatic framebuffer flushing mentioned in `set_framebuffers`
+   is disabled. This removes any time limit on frames in the frame buffer fifo. For example, if
+   you set the number of frame buffers to 30 and set the frame rate to 30 you can now precisely
+   record 1 second of video from the camera without risk of frame loss.
+
+   If this function is called with no arguments it returns if automatic flushing is disabled. By
+   default automatic flushing on frame drop is enabled to clear out stale frames.
+
+   .. note::
+
+      `snapshot` starts the frame capture process which will continue to capture frames until
+      there is no space to hold a frame at which point the frame capture process stops. The
+      process always stops when there is no space to hold the next frame.
+
 .. function:: sensor.set_lens_correction(enable, radi, coef)
 
    ``enable`` True to enable and False to disable (bool).
@@ -484,14 +515,14 @@ Functions
    * `sensor.IOCTL_LEPTON_RUN_COMMAND` - Pass this enum to execute a FLIR Lepton SDK command. You need to pass an additional 16-bit value after the enum as the command to execute.
    * `sensor.IOCTL_LEPTON_SET_ATTRIBUTE` - Pass this enum to set a FLIR Lepton SDK attribute.
       * The first argument is the 16-bit attribute ID to set (set the FLIR Lepton SDK).
-      * The second argument is a MicroPython byte array of bytes to write (should be a multiple of 16-bits). Create the byte array using `struct` following the FLIR Lepton SDK.
+      * The second argument is a MicroPython byte array of bytes to write (should be a multiple of 16-bits). Create the byte array using ``struct`` following the FLIR Lepton SDK.
    * `sensor.IOCTL_LEPTON_GET_ATTRIBUTE` - Pass this enum to get a FLIR Lepton SDK attribute.
       * The first argument is the 16-bit attribute ID to set (set the FLIR Lepton SDK).
-      * Returns a MicroPython byte array of the attribute. Use `struct` to deserialize the byte array following the FLIR Lepton SDK.
+      * Returns a MicroPython byte array of the attribute. Use ``struct`` to deserialize the byte array following the FLIR Lepton SDK.
    * `sensor.IOCTL_LEPTON_GET_FPA_TEMPERATURE` - Pass this enum to get the FLIR Lepton FPA Temp in celsius.
    * `sensor.IOCTL_LEPTON_GET_AUX_TEMPERATURE` - Pass this enum to get the FLIR Lepton AUX Temp in celsius.
    * `sensor.IOCTL_LEPTON_SET_MEASUREMENT_MODE` - Pass this followed by True or False to turn off automatic gain control on the FLIR Lepton and force it to output an image where each pixel value represents an exact temperature value in celsius. A second True enables high temperature mode enabling measurements up to 500C on the Lepton 3.5, False is the default low temperature mode.
-   * `sensor.IOCTL_LEPTON_GET_MEASUREMENT_MODE` - Pass this to get a tuple for (measurment-mode-enabled, high-temp-enabled).
+   * `sensor.IOCTL_LEPTON_GET_MEASUREMENT_MODE` - Pass this to get a tuple for (measurement-mode-enabled, high-temp-enabled).
    * `sensor.IOCTL_LEPTON_SET_MEASUREMENT_RANGE` - Pass this when measurement mode is enabled to set the temperature range in celsius for the mapping operation. The temperature image returned by the FLIR Lepton will then be clamped between these min and max values and then scaled to values between 0 to 255. To map a pixel value back to a temperature (on a grayscale image) do: ((pixel * (max_temp_in_celsius - min_temp_in_celsius)) / 255.0) + min_temp_in_celsius.
       * The first arugment should be the min temperature in celsius.
       * The second argument should be the max temperature in celsius. If the arguments are reversed the library will automatically swap them for you.
@@ -551,8 +582,15 @@ Constants
 
    RAW BAYER image pixel format. If you try to make the frame size too big
    to fit in the frame buffer your OpenMV Cam will set the pixel format
-   to BAYER so that you can capture images but no image processing methods
+   to BAYER so that you can capture images but only some image processing methods
    will be operational.
+
+.. data:: sensor.YUV422
+
+   A pixel format that is very easy to jpeg compress. Each pixel is stored as a grayscale
+   8-bit Y value followed by alternating 8-bit U/V color values that are shared between two
+   Y values (8-bits Y1, 8-bits U, 8-bits Y2, 8-bits V, etc.). Only some image processing
+   methods work with YUV422.
 
 .. data:: sensor.JPEG
 
@@ -580,13 +618,25 @@ Constants
 
    `sensor.get_id()` returns this for the OV9650 camera.
 
-.. data:: sensor.MT9M114
+.. data:: sensor.MT9V022
 
-   `sensor.get_id()` returns this for the MT9M114 camera.
+   `sensor.get_id()` returns this for the MT9V022 camera.
+
+.. data:: sensor.MT9V024
+
+   `sensor.get_id()` returns this for the MT9V024 camera.
+
+.. data:: sensor.MT9V032
+
+   `sensor.get_id()` returns this for the MT9V032 camera.
 
 .. data:: sensor.MT9V034
 
    `sensor.get_id()` returns this for the MT9V034 camera.
+
+.. data:: sensor.MT9M114
+
+   `sensor.get_id()` returns this for the MT9M114 camera.
 
 .. data:: sensor.LEPTON
 
@@ -596,9 +646,21 @@ Constants
 
    `sensor.get_id()` returns this for the HM01B0 camera.
 
+.. data:: sensor.HM0360
+
+   `sensor.get_id()` returns this for the HM01B0 camera.
+
 .. data:: sensor.GC2145
 
    `sensor.get_id()` returns this for the GC2145 camera.
+
+.. data:: sensor.PAJ6100
+
+   `sensor.get_id()` returns this for the PAJ6100 camera.
+
+.. data:: sensor.FROGEYE2020
+
+   `sensor.get_id()` returns this for the FROGEYE2020 camera.
 
 .. data:: sensor.QQCIF
 
@@ -644,6 +706,10 @@ Constants
 
    640x480 resolution for the camera sensor.
 
+.. data:: sensor.HQQQQVGA
+
+   30x20 resolution for the camera sensor.
+
 .. data:: sensor.HQQQVGA
 
    60x40 resolution for the camera sensor.
@@ -655,6 +721,10 @@ Constants
 .. data:: sensor.HQVGA
 
    240x160 resolution for the camera sensor.
+
+.. data:: sensor.HVGA
+
+   480x320 resolution for the camera sensor.
 
 .. data:: sensor.B64X32
 
@@ -680,6 +750,10 @@ Constants
 
    For use with `image.find_displacement()` and any other FFT based algorithm.
 
+.. data:: sensor.B160X160
+
+   160x160 resolution for the HM01B0 camera sensor.
+
 .. data:: sensor.B320X320
 
    320x320 resolution for the HM01B0 camera sensor.
@@ -702,15 +776,23 @@ Constants
 
 .. data:: sensor.SVGA
 
-   800x600 resolution for the camera sensor. Only works for the OV2640/OV5640 cameras.
+   800x600 resolution for the camera sensor.
 
 .. data:: sensor.XGA
 
-   1024x768 resolution for the camera sensor. Only works for the OV2640/OV5640 cameras.
+   1024x768 resolution for the camera sensor.
+
+.. data:: sensor.WXGA
+
+   1280x768 resolution for the MT9M114 camera sensor.
 
 .. data:: sensor.SXGA
 
    1280x1024 resolution for the camera sensor. Only works for the OV2640/OV5640 cameras.
+
+.. data:: sensor.SXGAM
+
+   1280x960 resolution for the MT9M114 camera sensor.
 
 .. data:: sensor.UXGA
 
@@ -718,7 +800,7 @@ Constants
 
 .. data:: sensor.HD
 
-   1280x720 resolution for the camera sensor. Only works for the OV2640/OV5640 cameras.
+   1280x720 resolution for the camera sensor.
 
 .. data:: sensor.FHD
 

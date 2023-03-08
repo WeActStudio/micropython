@@ -188,7 +188,7 @@ extern void fb_alloc_free_till_mark();
 
 #if !MICROPY_NLR_SETJMP
 #define nlr_push(val) \
-    assert(MP_STATE_THREAD(nlr_top) != val),nlr_push(val)
+    assert(MP_STATE_THREAD(nlr_top) != val), nlr_push(val)
 
 /*
 #define nlr_push(val) \

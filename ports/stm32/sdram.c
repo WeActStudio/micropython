@@ -256,14 +256,13 @@ static void sdram_init_seq(SDRAM_HandleTypeDef *hsdram, FMC_SDRAM_CommandTypeDef
     #endif
 }
 
-void sdram_enter_low_power()
-{
-    FMC_SDRAM_CommandTypeDef command;
-    command.CommandMode = FMC_SDRAM_CMD_SELFREFRESH_MODE;
-    command.CommandTarget = FMC_SDRAM_CMD_TARGET_BANK;
-    command.AutoRefreshNumber = 1;
-    command.ModeRegisterDefinition = 0;
-    HAL_SDRAM_SendCommand(&hsdram, &command, 0xFFFF);
+void sdram_enter_low_power(void) {
+    // Enter self-refresh mode.
+    // In self-refresh mode the SDRAM retains data without external clocking.
+    FMC_SDRAM_DEVICE->SDCMR |= (FMC_SDRAM_CMD_SELFREFRESH_MODE |     // Command Mode
+        FMC_SDRAM_CMD_TARGET_BANK |                                  // Command Target
+        (0 << 5U) |                                                  // Auto Refresh Number -1
+        (0 << 9U));                                                  // Mode Register Definition
 }
 
 void sdram_leave_low_power()
@@ -276,14 +275,12 @@ void sdram_leave_low_power()
     HAL_SDRAM_SendCommand(&hsdram, &command, 0xFFFF);
 }
 
-void sdram_powerdown()
-{
-    FMC_SDRAM_CommandTypeDef command;
-    command.CommandMode = FMC_SDRAM_CMD_POWERDOWN_MODE;
-    command.CommandTarget = FMC_SDRAM_CMD_TARGET_BANK;
-    command.AutoRefreshNumber = 1;
-    command.ModeRegisterDefinition = 0;
-    HAL_SDRAM_SendCommand(&hsdram, &command, 0xFFFF);
+void sdram_enter_power_down(void) {
+    // Enter power-down mode.
+    FMC_SDRAM_DEVICE->SDCMR |= (FMC_SDRAM_CMD_POWERDOWN_MODE |       // Command Mode
+        FMC_SDRAM_CMD_TARGET_BANK |                                  // Command Target
+        (0 << 5U) |                                                  // Auto Refresh Number -1
+        (0 << 9U));                                                  // Mode Register Definition
 }
 
 #if __GNUC__ >= 11

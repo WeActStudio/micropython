@@ -90,9 +90,9 @@ static const uint8_t usbd_desc_cfg[USBD_DESC_LEN] = {
 
     TUD_CDC_DESCRIPTOR(USBD_ITF_CDC, USBD_STR_CDC, USBD_CDC_EP_CMD,
         USBD_CDC_CMD_MAX_SIZE, USBD_CDC_EP_OUT, USBD_CDC_EP_IN, USBD_CDC_IN_OUT_MAX_SIZE),
-#if CFG_TUD_MSC
+    #if CFG_TUD_MSC
     TUD_MSC_DESCRIPTOR(USBD_ITF_MSC, 5, EPNUM_MSC_OUT, EPNUM_MSC_IN, 64),
-#endif
+    #endif
 };
 
 static const char *const usbd_desc_str[] = {
@@ -100,9 +100,9 @@ static const char *const usbd_desc_str[] = {
     [USBD_STR_PRODUCT] = "Board in FS mode",
     [USBD_STR_SERIAL] = NULL, // generated dynamically
     [USBD_STR_CDC] = "Board CDC",
-#if CFG_TUD_MSC
+    #if CFG_TUD_MSC
     [USBD_STR_MSC] = "Board MSC",
-#endif
+    #endif
 };
 
 const uint8_t *tud_descriptor_device_cb(void) {

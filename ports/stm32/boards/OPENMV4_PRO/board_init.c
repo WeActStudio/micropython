@@ -67,7 +67,7 @@ void OPENMV4_H7_PRO_board_low_power(int mode) {
             #if MICROPY_HW_USB_HS_ULPI3320
             ulpi_enter_low_power();
             #endif
-            sdram_powerdown();
+            sdram_enter_power_down();
             break;
     }
 

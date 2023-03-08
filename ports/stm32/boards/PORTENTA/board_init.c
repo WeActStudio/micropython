@@ -118,7 +118,7 @@ void PORTENTA_board_low_power(int mode)
         case 2:     // Enter standby mode.
             ulpi_enter_low_power();
             eth_low_power_mode(NULL, true);
-            sdram_powerdown();
+            sdram_enter_power_down();
             break;
     }
 

@@ -41,4 +41,11 @@
 #define CFG_TUD_MSC_BUFSIZE     (MICROPY_FATFS_MAX_SS)
 #endif
 
+#if MICROPY_HW_USB_MSC
+// Board and hardware specific configuration
+#define CFG_TUD_MSC             (1)
+// Set MSC EP buffer size to FatFS block size to avoid partial read/writes (offset arg).
+#define CFG_TUD_MSC_BUFSIZE     (MICROPY_FATFS_MAX_SS)
+#endif
+
 #endif // MICROPY_INCLUDED_RP2_TUSB_CONFIG_H

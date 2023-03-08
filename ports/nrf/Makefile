@@ -239,6 +239,7 @@ SRC_LIB += $(addprefix shared/,\
 	runtime/pyexec.c \
 	runtime/sys_stdio_mphal.c \
 	runtime/interrupt_char.c \
+	runtime/stdout_helpers.c \
 	timeutils/timeutils.c \
 	)
 
